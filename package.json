@@ -1,7 +1,7 @@
 {
-  "name": "node-audio-mixer",
+  "name": "node-audio-utils",
   "version": "2.0.0",
-  "description": "PCM audio mixer with customizable parameters",
+  "description": "PCM audio utils",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AlexPl3331/node-audio-mixer"
+    "url": "git+https://github.com/Samuel-Bowden/node-audio-utils"
   },
   "keywords": [
     "pcm",
@@ -23,7 +23,7 @@
     "audio",
     "mixer"
   ],
-  "author": "Alex Pl (https://github.com/AlexPl3331)",
+  "authors": ["Alex Pl (https://github.com/AlexPl3331)", "Samuel Bowden (https://github.com/Samuel-Bowden)"],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.5.4",
