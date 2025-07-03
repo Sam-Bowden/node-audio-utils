@@ -7,11 +7,11 @@ const ModifiedDataView_1 = require("../ModifiedDataView/ModifiedDataView");
 const IsLittleEndian_1 = require("../Utils/General/IsLittleEndian");
 const GetMethodName_1 = require("../Utils/General/GetMethodName");
 class AudioStats extends stream_1.Writable {
-    constructor(inputParams) {
+    constructor(statsParams) {
         super();
         this.currentChannel = 0;
-        this.inputParams = inputParams;
-        this.channels = Array.from({ length: this.inputParams.channels }, () => new ChannelStats((0, GetValueRange_1.getValueRange)(this.inputParams.bitDepth).max));
+        this.statsParams = statsParams;
+        this.channels = Array.from({ length: this.statsParams.channels }, () => new ChannelStats((0, GetValueRange_1.getValueRange)(this.statsParams.bitDepth).max));
     }
     reset() {
         this.channels.forEach(c => {
@@ -20,14 +20,14 @@ class AudioStats extends stream_1.Writable {
     }
     _write(chunk, _, callback) {
         const audioData = new ModifiedDataView_1.ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
-        const bytesPerElement = this.inputParams.bitDepth / 8;
-        const isLe = (0, IsLittleEndian_1.isLittleEndian)(this.inputParams.endianness);
-        const getSampleMethod = `get${(0, GetMethodName_1.getMethodName)(this.inputParams.bitDepth, this.inputParams.unsigned)}`;
+        const bytesPerElement = this.statsParams.bitDepth / 8;
+        const isLe = (0, IsLittleEndian_1.isLittleEndian)(this.statsParams.endianness);
+        const getSampleMethod = `get${(0, GetMethodName_1.getMethodName)(this.statsParams.bitDepth, this.statsParams.unsigned)}`;
         for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
             const sample = audioData[getSampleMethod](index, isLe);
             this.channels[this.currentChannel].update(sample);
             this.currentChannel += 1;
-            this.currentChannel %= this.inputParams.channels;
+            this.currentChannel %= this.statsParams.channels;
         }
         callback();
     }

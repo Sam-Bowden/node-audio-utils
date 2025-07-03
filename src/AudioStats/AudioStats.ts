@@ -1,6 +1,6 @@
 import {Writable} from 'stream';
 import {getValueRange} from '../Utils/General/GetValueRange';
-import {type InputParams} from '../Types/ParamTypes';
+import {type StatsParams} from '../Types/ParamTypes';
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from '../Utils/General/IsLittleEndian';
 import {type BitDepth, type IntType} from '../Types/AudioTypes';
@@ -9,15 +9,15 @@ import {getMethodName} from '../Utils/General/GetMethodName';
 export class AudioStats extends Writable {
 	channels: ChannelStats[];
 	private currentChannel = 0;
-	private readonly inputParams: InputParams;
+	private readonly statsParams: StatsParams;
 
-	constructor(inputParams: InputParams) {
+	constructor(statsParams: StatsParams) {
 		super();
-		this.inputParams = inputParams;
+		this.statsParams = statsParams;
 
 		this.channels = Array.from(
-			{length: this.inputParams.channels},
-			() => new ChannelStats(getValueRange(this.inputParams.bitDepth).max),
+			{length: this.statsParams.channels},
+			() => new ChannelStats(getValueRange(this.statsParams.bitDepth).max),
 		);
 	}
 
@@ -30,18 +30,18 @@ export class AudioStats extends Writable {
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void {
 		const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
 
-		const bytesPerElement = this.inputParams.bitDepth / 8;
+		const bytesPerElement = this.statsParams.bitDepth / 8;
 
-		const isLe = isLittleEndian(this.inputParams.endianness);
+		const isLe = isLittleEndian(this.statsParams.endianness);
 
-		const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(this.inputParams.bitDepth, this.inputParams.unsigned)}`;
+		const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(this.statsParams.bitDepth, this.statsParams.unsigned)}`;
 
 		for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
 			const sample = audioData[getSampleMethod](index, isLe);
 
 			this.channels[this.currentChannel].update(sample);
 			this.currentChannel += 1;
-			this.currentChannel %= this.inputParams.channels;
+			this.currentChannel %= this.statsParams.channels;
 		}
 
 		callback();

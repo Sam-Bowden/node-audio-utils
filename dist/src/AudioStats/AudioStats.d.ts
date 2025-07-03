@@ -1,10 +1,10 @@
 import { Writable } from 'stream';
-import { type InputParams } from '../Types/ParamTypes';
+import { type StatsParams } from '../Types/ParamTypes';
 export declare class AudioStats extends Writable {
     channels: ChannelStats[];
     private currentChannel;
-    private readonly inputParams;
-    constructor(inputParams: InputParams);
+    private readonly statsParams;
+    constructor(statsParams: StatsParams);
     reset(): void;
     _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void;
 }

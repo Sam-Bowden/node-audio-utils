@@ -35,4 +35,6 @@ export type InputParams = {
 	correctByteSize?: boolean;
 } & BasedParams;
 
+export type StatsParams = Omit<BasedParams, 'volume' | 'preProcessData'>;
+
 export type OmitSomeParams<T> = Omit<T, 'sampleRate' | 'channels' | 'bitDepth'>;
