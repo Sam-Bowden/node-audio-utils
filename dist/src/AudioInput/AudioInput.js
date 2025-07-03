@@ -5,7 +5,6 @@ const stream_1 = require("stream");
 const os_1 = require("os");
 const InputUtils_1 = require("../Utils/InputUtils");
 const GetZeroSample_1 = require("../Utils/General/GetZeroSample");
-const Stats_1 = require("../Utils/Stats");
 class AudioInput extends stream_1.Writable {
     constructor(inputParams, mixerParams, selfRemoveFunction) {
         super();
@@ -16,7 +15,6 @@ class AudioInput extends stream_1.Writable {
         this.mixerParams = mixerParams;
         this.selfRemoveFunction = selfRemoveFunction;
         this.audioUtils = new InputUtils_1.InputUtils(inputParams, mixerParams);
-        this.stats = new Stats_1.default(inputParams.bitDepth, inputParams.channels);
     }
     get params() {
         return this.inputParams;
@@ -105,7 +103,6 @@ class AudioInput extends stream_1.Writable {
             .checkIntType()
             .checkEndianness()
             .checkVolume()
-            .updateStats(this.stats)
             .getAudioData();
     }
     removeInputSelf() {

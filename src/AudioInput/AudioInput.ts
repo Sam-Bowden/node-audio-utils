@@ -5,13 +5,10 @@ import {endianness} from 'os';
 
 import {InputUtils} from '../Utils/InputUtils';
 import {getZeroSample} from '../Utils/General/GetZeroSample';
-import Stats from '../Utils/Stats';
 
 type SelfRemoveFunction = (audioInput: AudioInput) => void;
 
 export class AudioInput extends Writable {
-	stats: Stats;
-
 	private readonly inputParams: InputParams;
 	private readonly mixerParams: MixerParams;
 
@@ -33,8 +30,6 @@ export class AudioInput extends Writable {
 		this.selfRemoveFunction = selfRemoveFunction;
 
 		this.audioUtils = new InputUtils(inputParams, mixerParams);
-
-		this.stats = new Stats(inputParams.bitDepth, inputParams.channels);
 	}
 
 	get params(): Readonly<InputParams> {
@@ -158,7 +153,6 @@ export class AudioInput extends Writable {
 			.checkIntType()
 			.checkEndianness()
 			.checkVolume()
-			.updateStats(this.stats)
 			.getAudioData();
 	}
 

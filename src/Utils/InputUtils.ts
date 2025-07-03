@@ -11,8 +11,6 @@ import {changeBitDepth} from './AudioUtils/ChangeBitDepth';
 import {changeSampleRate} from './AudioUtils/СhangeSampleRate';
 import {changeChannelsCount} from './AudioUtils/СhangeChannelsCount';
 import {changeEndianness} from './AudioUtils/ChangeEndianness';
-import {updateStats} from './AudioUtils/UpdateStats';
-import type Stats from './Stats';
 
 export class InputUtils implements AudioUtils {
 	private readonly audioInputParams: InputParams;
@@ -35,12 +33,6 @@ export class InputUtils implements AudioUtils {
 	public setAudioData(audioData: Uint8Array): this {
 		this.audioData = new ModifiedDataView(audioData.buffer, audioData.byteOffset, audioData.length);
 		this.changedParams = {...this.audioInputParams};
-
-		return this;
-	}
-
-	public updateStats(stats: Stats): this {
-		updateStats(this.audioData, this.changedParams, stats);
 
 		return this;
 	}

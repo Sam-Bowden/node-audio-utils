@@ -9,7 +9,6 @@ const ChangeBitDepth_1 = require("./AudioUtils/ChangeBitDepth");
 const _hangeSampleRate_1 = require("./AudioUtils/\u0421hangeSampleRate");
 const _hangeChannelsCount_1 = require("./AudioUtils/\u0421hangeChannelsCount");
 const ChangeEndianness_1 = require("./AudioUtils/ChangeEndianness");
-const UpdateStats_1 = require("./AudioUtils/UpdateStats");
 class InputUtils {
     constructor(inputParams, mixerParams) {
         this.emptyData = new Uint8Array(0);
@@ -21,10 +20,6 @@ class InputUtils {
     setAudioData(audioData) {
         this.audioData = new ModifiedDataView_1.ModifiedDataView(audioData.buffer, audioData.byteOffset, audioData.length);
         this.changedParams = { ...this.audioInputParams };
-        return this;
-    }
-    updateStats(stats) {
-        (0, UpdateStats_1.updateStats)(this.audioData, this.changedParams, stats);
         return this;
     }
     checkIntType() {

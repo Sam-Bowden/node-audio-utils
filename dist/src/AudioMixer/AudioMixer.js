@@ -5,7 +5,6 @@ const stream_1 = require("stream");
 const AssertHighWaterMark_1 = require("../Asserts/AssertHighWaterMark");
 const MixerUtils_1 = require("../Utils/MixerUtils");
 const AudioInput_1 = require("../AudioInput/AudioInput");
-const Stats_1 = require("../Utils/Stats");
 class AudioMixer extends stream_1.Readable {
     constructor(params) {
         super();
@@ -19,7 +18,6 @@ class AudioMixer extends stream_1.Readable {
         else {
             this.delayTimeValue = 1;
         }
-        this.stats = new Stats_1.default(params.bitDepth, params.channels);
     }
     get params() {
         return this.mixerParams;
@@ -38,7 +36,6 @@ class AudioMixer extends stream_1.Readable {
             let mixedData = this.audioUtils.setAudioData(dataCollection)
                 .mix()
                 .checkVolume()
-                .updateStats(this.stats)
                 .getAudioData();
             if (this.mixerParams.preProcessData) {
                 mixedData = this.mixerParams.preProcessData(mixedData);

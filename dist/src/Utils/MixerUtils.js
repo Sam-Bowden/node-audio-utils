@@ -4,7 +4,6 @@ exports.MixerUtils = void 0;
 const _hangeVolume_1 = require("./AudioUtils/\u0421hangeVolume");
 const ModifiedDataView_1 = require("../ModifiedDataView/ModifiedDataView");
 const MixAudioData_1 = require("./General/MixAudioData");
-const UpdateStats_1 = require("./AudioUtils/UpdateStats");
 class MixerUtils {
     constructor(mixerParams) {
         this.dataCollection = [];
@@ -32,10 +31,6 @@ class MixerUtils {
         if (volume !== 100) {
             (0, _hangeVolume_1.changeVolume)(this.mixedData, this.changedParams);
         }
-        return this;
-    }
-    updateStats(stats) {
-        (0, UpdateStats_1.updateStats)(this.mixedData, this.changedParams, stats);
         return this;
     }
     getAudioData() {

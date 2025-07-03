@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StatsPeriod = exports.AudioInput = exports.AudioInterleaver = exports.AudioMixer = void 0;
+exports.AudioInput = exports.AudioStats = exports.AudioInterleaver = exports.AudioMixer = void 0;
 const AudioMixer_1 = require("./AudioMixer/AudioMixer");
 Object.defineProperty(exports, "AudioMixer", { enumerable: true, get: function () { return AudioMixer_1.AudioMixer; } });
 const AudioInput_1 = require("./AudioInput/AudioInput");
 Object.defineProperty(exports, "AudioInput", { enumerable: true, get: function () { return AudioInput_1.AudioInput; } });
 const AudioInterleaver_1 = require("./AudioInterleaver/AudioInterleaver");
 Object.defineProperty(exports, "AudioInterleaver", { enumerable: true, get: function () { return AudioInterleaver_1.AudioInterleaver; } });
-const Stats_1 = require("./Utils/Stats");
-Object.defineProperty(exports, "StatsPeriod", { enumerable: true, get: function () { return Stats_1.StatsPeriod; } });
+const AudioStats_1 = require("./AudioStats/AudioStats");
+Object.defineProperty(exports, "AudioStats", { enumerable: true, get: function () { return AudioStats_1.AudioStats; } });

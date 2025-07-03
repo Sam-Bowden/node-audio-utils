@@ -5,8 +5,6 @@ import {changeVolume} from './AudioUtils/СhangeVolume';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {mixAudioData} from './General/MixAudioData';
-import {updateStats} from './AudioUtils/UpdateStats';
-import type Stats from './Stats';
 
 export class MixerUtils implements AudioUtils {
 	private readonly audioMixerParams: MixerParams;
@@ -49,12 +47,6 @@ export class MixerUtils implements AudioUtils {
 		if (volume !== 100) {
 			changeVolume(this.mixedData, this.changedParams);
 		}
-
-		return this;
-	}
-
-	public updateStats(stats: Stats): this {
-		updateStats(this.mixedData, this.changedParams, stats);
 
 		return this;
 	}
