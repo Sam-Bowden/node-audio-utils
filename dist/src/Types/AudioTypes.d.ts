@@ -3,3 +3,5 @@ type BitDepth = 8 | 16 | 24 | 32;
 type Endianness = 'LE' | 'BE';
 type IntType = 'Int' | 'Uint';
 export type { SampleRate, BitDepth, Endianness, IntType, };
+export declare const isSampleRate: (v: number) => v is SampleRate;
+export declare const isBitDepth: (v: number) => v is BitDepth;
