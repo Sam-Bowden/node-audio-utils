@@ -12,7 +12,7 @@ function changeChannelsCount(audioData, inputParams, mixerParams) {
     const allocDataView = new ModifiedDataView_1.ModifiedDataView(allocData.buffer);
     const getSampleMethod = `get${(0, GetMethodName_1.getMethodName)(inputParams.bitDepth, inputParams.unsigned)}`;
     const setSampleMethod = `set${(0, GetMethodName_1.getMethodName)(mixerParams.bitDepth, mixerParams.unsigned)}`;
-    for (let oldPosition = 0, newPosition = 0; oldPosition < audioData.byteLength; oldPosition += bytesPerElement) {
+    for (let oldPosition = 0, newPosition = 0; oldPosition < audioData.byteLength; oldPosition += bytesPerElement * inputParams.channels) {
         const sample = audioData[getSampleMethod](oldPosition, isLe);
         const nextPosition = newPosition + (bytesPerElement * mixerParams.channels);
         for (newPosition; newPosition < nextPosition; newPosition += bytesPerElement) {
