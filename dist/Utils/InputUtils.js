@@ -9,6 +9,7 @@ const ChangeBitDepth_1 = require("./AudioUtils/ChangeBitDepth");
 const _hangeSampleRate_1 = require("./AudioUtils/\u0421hangeSampleRate");
 const _hangeChannelsCount_1 = require("./AudioUtils/\u0421hangeChannelsCount");
 const ChangeEndianness_1 = require("./AudioUtils/ChangeEndianness");
+const ApplyGateThreshold_1 = require("./AudioUtils/ApplyGateThreshold");
 class InputUtils {
     constructor(inputParams, mixerParams) {
         this.emptyData = new Uint8Array(0);
@@ -51,6 +52,12 @@ class InputUtils {
         const volume = this.changedParams.volume ?? 100;
         if (volume !== 100) {
             (0, _hangeVolume_1.changeVolume)(this.audioData, this.changedParams);
+        }
+        return this;
+    }
+    applyGateThreshold() {
+        if (this.changedParams.gateThreshold !== undefined) {
+            (0, ApplyGateThreshold_1.applyGateThreshold)(this.audioData, this.changedParams);
         }
         return this;
     }

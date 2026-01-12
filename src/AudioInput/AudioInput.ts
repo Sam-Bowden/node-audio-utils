@@ -170,6 +170,7 @@ export class AudioInput extends Writable {
 			.checkIntType()
 			.checkEndianness()
 			.checkVolume()
+			.applyGateThreshold()
 			.getAudioData();
 	}
 
