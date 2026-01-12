@@ -8,7 +8,7 @@ function applyGateThreshold(audioData, params) {
     const isLe = (0, IsLittleEndian_1.isLittleEndian)(params.endianness);
     const halfRange = (2 ** params.bitDepth) / 2;
     const equilibrium = params.unsigned ? halfRange : 0;
-    const threshold = halfRange * ((params.gateThreshold) / 100);
+    const threshold = halfRange * (params.gateThreshold);
     const upperBound = equilibrium + threshold - 1;
     const lowerBound = equilibrium - threshold;
     const getSampleMethod = `get${(0, GetMethodName_1.getMethodName)(params.bitDepth, params.unsigned)}`;

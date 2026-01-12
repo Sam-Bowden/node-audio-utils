@@ -11,7 +11,7 @@ export function applyGateThreshold(audioData: ModifiedDataView, params: InputPar
 
 	const halfRange = (2 ** params.bitDepth) / 2;
 	const equilibrium = params.unsigned ? halfRange : 0;
-	const threshold = halfRange * ((params.gateThreshold!) / 100);
+	const threshold = halfRange * (params.gateThreshold!);
 
 	const upperBound = equilibrium + threshold - 1;
 	const lowerBound = equilibrium - threshold;
