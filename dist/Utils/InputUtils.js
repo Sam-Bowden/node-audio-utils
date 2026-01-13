@@ -17,6 +17,7 @@ class InputUtils {
         this.audioMixerParams = mixerParams;
         this.changedParams = { ...this.audioInputParams };
         this.audioData = new ModifiedDataView_1.ModifiedDataView(this.emptyData.buffer);
+        this.gateState = { releaseSamplesRemaining: inputParams.gateReleaseSamples };
     }
     setAudioData(audioData) {
         this.audioData = new ModifiedDataView_1.ModifiedDataView(audioData.buffer, audioData.byteOffset, audioData.length);
@@ -57,7 +58,7 @@ class InputUtils {
     }
     applyGateThreshold() {
         if (this.changedParams.gateThreshold !== undefined) {
-            (0, ApplyGateThreshold_1.applyGateThreshold)(this.audioData, this.changedParams);
+            (0, ApplyGateThreshold_1.applyGateThreshold)(this.audioData, this.changedParams, this.gateState);
         }
         return this;
     }

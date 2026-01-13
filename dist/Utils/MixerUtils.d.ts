@@ -6,6 +6,7 @@ export declare class MixerUtils implements AudioUtils {
     private dataCollection;
     private readonly emptyData;
     private mixedData;
+    private readonly gateState;
     constructor(mixerParams: MixerParams);
     setAudioData(audioData: Uint8Array[]): this;
     mix(): this;

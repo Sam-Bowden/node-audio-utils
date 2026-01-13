@@ -6,6 +6,7 @@ import {applyGateThreshold} from './AudioUtils/ApplyGateThreshold';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {mixAudioData} from './General/MixAudioData';
+import {type GateState} from './GateState';
 
 export class MixerUtils implements AudioUtils {
 	private readonly audioMixerParams: MixerParams;
@@ -16,12 +17,16 @@ export class MixerUtils implements AudioUtils {
 	private readonly emptyData = new Uint8Array(0);
 	private mixedData: ModifiedDataView;
 
+	private readonly gateState: GateState;
+
 	constructor(mixerParams: MixerParams) {
 		this.audioMixerParams = mixerParams;
 
 		this.changedParams = {...this.audioMixerParams};
 
 		this.mixedData = new ModifiedDataView(this.emptyData.buffer);
+
+		this.gateState = {releaseSamplesRemaining: mixerParams.gateReleaseSamples};
 	}
 
 	public setAudioData(audioData: Uint8Array[]): this {
@@ -54,7 +59,7 @@ export class MixerUtils implements AudioUtils {
 
 	public applyGateThreshold(): this {
 		if (this.audioMixerParams.gateThreshold !== undefined) {
-			applyGateThreshold(this.mixedData, this.changedParams);
+			applyGateThreshold(this.mixedData, this.changedParams, this.gateState);
 		}
 
 		return this;

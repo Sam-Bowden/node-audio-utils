@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.applyGateThreshold = applyGateThreshold;
 const IsLittleEndian_1 = require("../General/IsLittleEndian");
 const GetMethodName_1 = require("../General/GetMethodName");
-function applyGateThreshold(audioData, params) {
+function applyGateThreshold(audioData, params, gateState) {
     const bytesPerElement = params.bitDepth / 8;
     const isLe = (0, IsLittleEndian_1.isLittleEndian)(params.endianness);
     const halfRange = (2 ** params.bitDepth) / 2;
@@ -15,7 +15,18 @@ function applyGateThreshold(audioData, params) {
     const setSampleMethod = `set${(0, GetMethodName_1.getMethodName)(params.bitDepth, params.unsigned)}`;
     for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
         const sample = audioData[getSampleMethod](index, isLe);
-        const gatedSample = sample <= lowerBound || sample >= upperBound ? sample : equilibrium;
+        let gatedSample;
+        if (sample <= lowerBound || sample >= upperBound) {
+            gateState.releaseSamplesRemaining = params.gateReleaseSamples;
+            gatedSample = sample;
+        }
+        else if (gateState.releaseSamplesRemaining !== undefined && gateState.releaseSamplesRemaining > 0) {
+            gateState.releaseSamplesRemaining -= 1;
+            gatedSample = sample;
+        }
+        else {
+            gatedSample = equilibrium;
+        }
         audioData[setSampleMethod](index, gatedSample, isLe);
     }
 }

@@ -1,11 +1,12 @@
 import {type InputParams, type MixerParams} from '../../Types/ParamTypes';
 import {type ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
+import {type GateState} from '../GateState';
 
 import {isLittleEndian} from '../General/IsLittleEndian';
 import {getMethodName} from '../General/GetMethodName';
 
-export function applyGateThreshold(audioData: ModifiedDataView, params: InputParams | MixerParams): void {
+export function applyGateThreshold(audioData: ModifiedDataView, params: InputParams | MixerParams, gateState: GateState): void {
 	const bytesPerElement = params.bitDepth / 8;
 	const isLe = isLittleEndian(params.endianness);
 
@@ -22,7 +23,17 @@ export function applyGateThreshold(audioData: ModifiedDataView, params: InputPar
 	for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
 		const sample = audioData[getSampleMethod](index, isLe);
 
-		const gatedSample = sample <= lowerBound || sample >= upperBound ? sample : equilibrium;
+		let gatedSample;
+
+		if (sample <= lowerBound || sample >= upperBound) {
+			gateState.releaseSamplesRemaining = params.gateReleaseSamples;
+			gatedSample = sample;
+		} else if (gateState.releaseSamplesRemaining !== undefined && gateState.releaseSamplesRemaining > 0) {
+			gateState.releaseSamplesRemaining -= 1;
+			gatedSample = sample;
+		} else {
+			gatedSample = equilibrium;
+		}
 
 		audioData[setSampleMethod](index, gatedSample, isLe);
 	}
