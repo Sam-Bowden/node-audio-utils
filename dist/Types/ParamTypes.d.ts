@@ -9,7 +9,7 @@ type BasedParams = {
     unsigned?: boolean;
     volume?: number;
     gateThreshold?: number;
-    gateReleaseSamples?: number;
+    gateHoldSamples?: number;
     preProcessData?: PreProcessFunction;
 };
 export type MixerParams = {

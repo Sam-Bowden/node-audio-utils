@@ -17,11 +17,11 @@ function applyGateThreshold(audioData, params, gateState) {
         const sample = audioData[getSampleMethod](index, isLe);
         let gatedSample;
         if (sample <= lowerBound || sample >= upperBound) {
-            gateState.releaseSamplesRemaining = params.gateReleaseSamples;
+            gateState.holdSamplesRemaining = params.gateHoldSamples;
             gatedSample = sample;
         }
-        else if (gateState.releaseSamplesRemaining !== undefined && gateState.releaseSamplesRemaining > 0) {
-            gateState.releaseSamplesRemaining -= 1;
+        else if (gateState.holdSamplesRemaining !== undefined && gateState.holdSamplesRemaining > 0) {
+            gateState.holdSamplesRemaining -= 1;
             gatedSample = sample;
         }
         else {

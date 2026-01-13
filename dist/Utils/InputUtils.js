@@ -17,7 +17,7 @@ class InputUtils {
         this.audioMixerParams = mixerParams;
         this.changedParams = { ...this.audioInputParams };
         this.audioData = new ModifiedDataView_1.ModifiedDataView(this.emptyData.buffer);
-        this.gateState = { releaseSamplesRemaining: inputParams.gateReleaseSamples };
+        this.gateState = { holdSamplesRemaining: inputParams.gateHoldSamples };
     }
     setAudioData(audioData) {
         this.audioData = new ModifiedDataView_1.ModifiedDataView(audioData.buffer, audioData.byteOffset, audioData.length);

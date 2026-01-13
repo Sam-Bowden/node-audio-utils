@@ -33,7 +33,7 @@ export class InputUtils implements AudioUtils {
 
 		this.audioData = new ModifiedDataView(this.emptyData.buffer);
 
-		this.gateState = {releaseSamplesRemaining: inputParams.gateReleaseSamples};
+		this.gateState = {holdSamplesRemaining: inputParams.gateHoldSamples};
 	}
 
 	public setAudioData(audioData: Uint8Array): this {

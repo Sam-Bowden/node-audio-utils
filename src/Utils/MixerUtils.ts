@@ -1,12 +1,12 @@
 import {type AudioUtils} from '../Types/AudioUtils';
 import {type MixerParams} from '../Types/ParamTypes';
+import {type GateState} from './GateState';
 
 import {changeVolume} from './AudioUtils/СhangeVolume';
 import {applyGateThreshold} from './AudioUtils/ApplyGateThreshold';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {mixAudioData} from './General/MixAudioData';
-import {type GateState} from './GateState';
 
 export class MixerUtils implements AudioUtils {
 	private readonly audioMixerParams: MixerParams;
@@ -26,7 +26,7 @@ export class MixerUtils implements AudioUtils {
 
 		this.mixedData = new ModifiedDataView(this.emptyData.buffer);
 
-		this.gateState = {releaseSamplesRemaining: mixerParams.gateReleaseSamples};
+		this.gateState = {holdSamplesRemaining: mixerParams.gateHoldSamples};
 	}
 
 	public setAudioData(audioData: Uint8Array[]): this {

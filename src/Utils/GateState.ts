@@ -1,3 +1,3 @@
 export type GateState = {
-	releaseSamplesRemaining?: number;
+	holdSamplesRemaining?: number;
 };
