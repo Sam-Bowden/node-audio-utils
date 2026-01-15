@@ -167,6 +167,7 @@ export class AudioInput extends Writable {
 			.checkEndianness()
 			.checkVolume()
 			.applyGate()
+			.applyDownwardCompressor()
 			.getAudioData();
 	}
 

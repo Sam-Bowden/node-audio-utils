@@ -4,6 +4,7 @@ import {type GateState} from './GateState';
 
 import {changeVolume} from './AudioUtils/СhangeVolume';
 import {applyGate} from './AudioUtils/ApplyGate';
+import {applyDownwardCompressor} from './AudioUtils/ApplyDownwardCompressor';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {mixAudioData} from './General/MixAudioData';
@@ -60,6 +61,14 @@ export class MixerUtils implements AudioUtils {
 	public applyGate(): this {
 		if (this.audioMixerParams.gateThreshold !== undefined) {
 			applyGate(this.mixedData, this.changedParams, this.gateState);
+		}
+
+		return this;
+	}
+
+	public applyDownwardCompressor(): this {
+		if (this.audioMixerParams.downwardCompressorThreshold !== undefined) {
+			applyDownwardCompressor(this.mixedData, this.changedParams);
 		}
 
 		return this;

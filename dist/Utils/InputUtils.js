@@ -10,6 +10,7 @@ const _hangeSampleRate_1 = require("./AudioUtils/\u0421hangeSampleRate");
 const _hangeChannelsCount_1 = require("./AudioUtils/\u0421hangeChannelsCount");
 const ChangeEndianness_1 = require("./AudioUtils/ChangeEndianness");
 const ApplyGate_1 = require("./AudioUtils/ApplyGate");
+const ApplyDownwardCompressor_1 = require("./AudioUtils/ApplyDownwardCompressor");
 class InputUtils {
     constructor(inputParams, mixerParams) {
         this.emptyData = new Uint8Array(0);
@@ -59,6 +60,12 @@ class InputUtils {
     applyGate() {
         if (this.changedParams.gateThreshold !== undefined) {
             (0, ApplyGate_1.applyGate)(this.audioData, this.changedParams, this.gateState);
+        }
+        return this;
+    }
+    applyDownwardCompressor() {
+        if (this.changedParams.downwardCompressorThreshold !== undefined) {
+            (0, ApplyDownwardCompressor_1.applyDownwardCompressor)(this.audioData, this.changedParams);
         }
         return this;
     }

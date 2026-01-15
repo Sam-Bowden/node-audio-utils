@@ -15,6 +15,7 @@ export declare class InputUtils implements AudioUtils {
     checkChannelsCount(): this;
     checkVolume(): this;
     applyGate(): this;
+    applyDownwardCompressor(): this;
     checkEndianness(): this;
     getAudioData(): Uint8Array;
 }

@@ -30,6 +30,7 @@ class AudioMixer extends stream_1.Readable {
                 .mix()
                 .checkVolume()
                 .applyGate()
+                .applyDownwardCompressor()
                 .getAudioData();
             this.unshift(mixedData);
         }

@@ -44,6 +44,7 @@ export class AudioMixer extends Readable {
 				.mix()
 				.checkVolume()
 				.applyGate()
+				.applyDownwardCompressor()
 				.getAudioData();
 
 			this.unshift(mixedData);

@@ -13,6 +13,7 @@ import {changeSampleRate} from './AudioUtils/СhangeSampleRate';
 import {changeChannelsCount} from './AudioUtils/СhangeChannelsCount';
 import {changeEndianness} from './AudioUtils/ChangeEndianness';
 import {applyGate} from './AudioUtils/ApplyGate';
+import {applyDownwardCompressor} from './AudioUtils/ApplyDownwardCompressor';
 
 export class InputUtils implements AudioUtils {
 	private readonly audioInputParams: InputParams;
@@ -90,6 +91,14 @@ export class InputUtils implements AudioUtils {
 	public applyGate(): this {
 		if (this.changedParams.gateThreshold !== undefined) {
 			applyGate(this.audioData, this.changedParams, this.gateState);
+		}
+
+		return this;
+	}
+
+	public applyDownwardCompressor(): this {
+		if (this.changedParams.downwardCompressorThreshold !== undefined) {
+			applyDownwardCompressor(this.audioData, this.changedParams);
 		}
 
 		return this;

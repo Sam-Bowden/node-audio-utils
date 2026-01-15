@@ -9,6 +9,8 @@ type BasedParams = {
 	volume?: number;
 	gateThreshold?: number;
 	gateHoldSamples?: number;
+	downwardCompressorThreshold?: number;
+	downwardCompressorRatio?: number;
 };
 
 export type MixerParams = {

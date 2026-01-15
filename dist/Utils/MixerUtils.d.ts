@@ -12,5 +12,6 @@ export declare class MixerUtils implements AudioUtils {
     mix(): this;
     checkVolume(): this;
     applyGate(): this;
+    applyDownwardCompressor(): this;
     getAudioData(): Uint8Array;
 }
