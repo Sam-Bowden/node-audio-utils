@@ -12,18 +12,24 @@ function applyGate(audioData, params, gateState) {
     const setSampleMethod = `set${(0, GetMethodName_1.getMethodName)(params.bitDepth, params.unsigned)}`;
     for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
         const sample = audioData[getSampleMethod](index, isLe);
-        let gatedSample;
         if (sample <= lowerThreshold || sample >= upperThreshold) {
             gateState.holdSamplesRemaining = params.gateHoldSamples;
-            gatedSample = sample;
+            if (params.gateAttackSamples === undefined) {
+                gateState.attenuation = 1;
+            }
+            else {
+                gateState.attenuation = Math.min(gateState.attenuation + (1 / params.gateAttackSamples), 1);
+            }
         }
         else if (gateState.holdSamplesRemaining !== undefined && gateState.holdSamplesRemaining > 0) {
             gateState.holdSamplesRemaining -= 1;
-            gatedSample = sample;
+        }
+        else if (params.gateReleaseSamples === undefined) {
+            gateState.attenuation = 0;
         }
         else {
-            gatedSample = equilibrium;
+            gateState.attenuation = Math.max(gateState.attenuation - (1 / params.gateReleaseSamples), 0);
         }
-        audioData[setSampleMethod](index, gatedSample, isLe);
+        audioData[setSampleMethod](index, ((sample - equilibrium) * gateState.attenuation) + equilibrium, isLe);
     }
 }

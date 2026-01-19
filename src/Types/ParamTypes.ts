@@ -9,6 +9,8 @@ type BasedParams = {
 	volume?: number;
 	gateThreshold?: number;
 	gateHoldSamples?: number;
+	gateAttackSamples?: number;
+	gateReleaseSamples?: number;
 	downwardCompressorThreshold?: number;
 	downwardCompressorRatio?: number;
 };

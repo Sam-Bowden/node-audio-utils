@@ -27,7 +27,7 @@ export class MixerUtils implements AudioUtils {
 
 		this.mixedData = new ModifiedDataView(this.emptyData.buffer);
 
-		this.gateState = {holdSamplesRemaining: mixerParams.gateHoldSamples};
+		this.gateState = {holdSamplesRemaining: mixerParams.gateHoldSamples, attenuation: 1};
 	}
 
 	public setAudioData(audioData: Uint8Array[]): this {
