@@ -1,8 +1,8 @@
-import {Writable} from 'stream';
-import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
-import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
+import { Writable } from 'stream';
+import { ModifiedDataView } from '../ModifiedDataView/ModifiedDataView';
+import { type SampleRate, type BitDepth } from '../Types/AudioTypes';
 
-import {type Channel, type PCMMonitor, PcmMonitor} from '../../pcm-monitor';
+import { type Channel, type PCMMonitor, PcmMonitor } from '../../pcm-monitor';
 
 export class AudioStats extends Writable {
 	private readonly monitor: PCMMonitor;
@@ -28,23 +28,24 @@ export type LoudnessMonitorParams = {
 	bitDepth: BitDepth;
 };
 
-/** Converts a raw buffer of little-endian unsigned integer samples to an array of floats normalised to [-1, 1] */
+/** Converts a raw buffer of little-endian signed integer samples to an array of floats normalised to [-1, 1] */
 function normaliseChunk(chunk: Uint8Array, bitDepth: BitDepth): Float64Array {
-	const midpoint = 2 ** (bitDepth - 1);
 	const bytesPerSample = bitDepth / 8;
 	const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
 
-	// Center at 0 then normalize to [-1, 1]
-	const normaliseSample = (sample: number) => {
-		const n = (sample - midpoint) / midpoint;
-		return n;
-	};
+	// Normalisation coefficients
+	const N = 2 ** bitDepth;
+	const a = 2 / (N - 1);
+	const b = 1 - ((N - 2) / (N - 1));
+
+	// Normalize from signed bitDepth to [-1, 1]
+	const normaliseSample = (sample: number) => (a * sample) + b;
 
 	const numSamples = Math.floor(audioData.byteLength / bytesPerSample);
 
 	const samples = new Float64Array(numSamples);
 	for (let i = 0; i < numSamples; i++) {
-		const rawSample = audioData[`getUint${bitDepth}`](i * bytesPerSample, true);
+		const rawSample = audioData[`getInt${bitDepth}`](i * bytesPerSample, true);
 		samples[i] = normaliseSample(rawSample);
 	}
 
