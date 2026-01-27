@@ -51,10 +51,17 @@ class InputUtils {
         }
         return this;
     }
-    checkVolume() {
-        const volume = this.changedParams.volume ?? 100;
-        if (volume !== 100) {
-            (0, _hangeVolume_1.changeVolume)(this.audioData, this.changedParams);
+    checkPreProcessVolume() {
+        const preProcessVolume = this.changedParams.preProcessVolume ?? 100;
+        if (preProcessVolume !== 100) {
+            (0, _hangeVolume_1.changeVolume)(this.audioData, this.changedParams, preProcessVolume);
+        }
+        return this;
+    }
+    checkPostProcessVolume() {
+        const postProcessVolume = this.changedParams.postProcessVolume ?? 100;
+        if (postProcessVolume !== 100) {
+            (0, _hangeVolume_1.changeVolume)(this.audioData, this.changedParams, postProcessVolume);
         }
         return this;
     }

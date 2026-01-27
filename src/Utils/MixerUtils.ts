@@ -51,11 +51,21 @@ export class MixerUtils implements AudioUtils {
 		return this;
 	}
 
-	public checkVolume(): this {
-		const volume = this.audioMixerParams.volume ?? 100;
+	public checkPreProcessVolume(): this {
+		const preProcessVolume = this.audioMixerParams.preProcessVolume ?? 100;
 
-		if (volume !== 100) {
-			changeVolume(this.mixedData, this.changedParams);
+		if (preProcessVolume !== 100) {
+			changeVolume(this.mixedData, this.changedParams, preProcessVolume);
+		}
+
+		return this;
+	}
+
+	public checkPostProcessVolume(): this {
+		const postProcessVolume = this.audioMixerParams.postProcessVolume ?? 100;
+
+		if (postProcessVolume !== 100) {
+			changeVolume(this.mixedData, this.changedParams, postProcessVolume);
 		}
 
 		return this;

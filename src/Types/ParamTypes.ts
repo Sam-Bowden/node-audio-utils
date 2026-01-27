@@ -6,7 +6,8 @@ type BasedParams = {
 	bitDepth: BitDepth;
 	endianness?: Endianness;
 	unsigned?: boolean;
-	volume?: number;
+	preProcessVolume?: number;
+	postProcessVolume?: number;
 	gateThreshold?: number;
 	gateHoldSamples?: number;
 	gateAttackSamples?: number;

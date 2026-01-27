@@ -165,9 +165,10 @@ export class AudioInput extends Writable {
 			.checkChannelsCount()
 			.checkIntType()
 			.checkEndianness()
-			.checkVolume()
+			.checkPreProcessVolume()
 			.applyGate()
 			.applyDownwardCompressor()
+			.checkPostProcessVolume()
 			.getAudioData();
 	}
 

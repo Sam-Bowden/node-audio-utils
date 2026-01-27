@@ -26,10 +26,17 @@ class InterleaverUtils {
         }
         return this;
     }
-    checkVolume() {
-        const volume = this.audioInterleaverParams.volume ?? 100;
-        if (volume !== 100) {
-            (0, _hangeVolume_1.changeVolume)(this.interleavedData, this.changedParams);
+    checkPreProcessVolume() {
+        const preProcessVolume = this.audioInterleaverParams.preProcessVolume ?? 100;
+        if (preProcessVolume !== 100) {
+            (0, _hangeVolume_1.changeVolume)(this.interleavedData, this.changedParams, preProcessVolume);
+        }
+        return this;
+    }
+    checkPostProcessVolume() {
+        const postProcessVolume = this.audioInterleaverParams.postProcessVolume ?? 100;
+        if (postProcessVolume !== 100) {
+            (0, _hangeVolume_1.changeVolume)(this.interleavedData, this.changedParams, postProcessVolume);
         }
         return this;
     }

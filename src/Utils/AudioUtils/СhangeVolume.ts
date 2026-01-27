@@ -6,9 +6,9 @@ import {isLittleEndian} from '../General/IsLittleEndian';
 import {getMethodName} from '../General/GetMethodName';
 import {getValueRange} from '../General/GetValueRange';
 
-export function changeVolume(audioData: ModifiedDataView, params: InputParams | MixerParams): void {
+export function changeVolume(audioData: ModifiedDataView, params: InputParams | MixerParams, volume: number): void {
 	const bytesPerElement = params.bitDepth / 8;
-	const volume = (params.volume!) / 100;
+	volume /= 100;
 
 	const isLe = isLittleEndian(params.endianness);
 
@@ -26,6 +26,4 @@ export function changeVolume(audioData: ModifiedDataView, params: InputParams | 
 
 		audioData[setSampleMethod](index, volumedSample, isLe);
 	}
-
-	params.volume = 100;
 }

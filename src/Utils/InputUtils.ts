@@ -81,11 +81,21 @@ export class InputUtils implements AudioUtils {
 		return this;
 	}
 
-	public checkVolume(): this {
-		const volume = this.changedParams.volume ?? 100;
+	public checkPreProcessVolume(): this {
+		const preProcessVolume = this.changedParams.preProcessVolume ?? 100;
 
-		if (volume !== 100) {
-			changeVolume(this.audioData, this.changedParams);
+		if (preProcessVolume !== 100) {
+			changeVolume(this.audioData, this.changedParams, preProcessVolume);
+		}
+
+		return this;
+	}
+
+	public checkPostProcessVolume(): this {
+		const postProcessVolume = this.changedParams.postProcessVolume ?? 100;
+
+		if (postProcessVolume !== 100) {
+			changeVolume(this.audioData, this.changedParams, postProcessVolume);
 		}
 
 		return this;

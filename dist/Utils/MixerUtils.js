@@ -30,10 +30,17 @@ class MixerUtils {
         }
         return this;
     }
-    checkVolume() {
-        const volume = this.audioMixerParams.volume ?? 100;
-        if (volume !== 100) {
-            (0, _hangeVolume_1.changeVolume)(this.mixedData, this.changedParams);
+    checkPreProcessVolume() {
+        const preProcessVolume = this.audioMixerParams.preProcessVolume ?? 100;
+        if (preProcessVolume !== 100) {
+            (0, _hangeVolume_1.changeVolume)(this.mixedData, this.changedParams, preProcessVolume);
+        }
+        return this;
+    }
+    checkPostProcessVolume() {
+        const postProcessVolume = this.audioMixerParams.postProcessVolume ?? 100;
+        if (postProcessVolume !== 100) {
+            (0, _hangeVolume_1.changeVolume)(this.mixedData, this.changedParams, postProcessVolume);
         }
         return this;
     }

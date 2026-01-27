@@ -41,11 +41,21 @@ export class InterleaverUtils implements AudioUtils {
 		return this;
 	}
 
-	public checkVolume(): this {
-		const volume = this.audioInterleaverParams.volume ?? 100;
+	public checkPreProcessVolume(): this {
+		const preProcessVolume = this.audioInterleaverParams.preProcessVolume ?? 100;
 
-		if (volume !== 100) {
-			changeVolume(this.interleavedData, this.changedParams);
+		if (preProcessVolume !== 100) {
+			changeVolume(this.interleavedData, this.changedParams, preProcessVolume);
+		}
+
+		return this;
+	}
+
+	public checkPostProcessVolume(): this {
+		const postProcessVolume = this.audioInterleaverParams.postProcessVolume ?? 100;
+
+		if (postProcessVolume !== 100) {
+			changeVolume(this.interleavedData, this.changedParams, postProcessVolume);
 		}
 
 		return this;

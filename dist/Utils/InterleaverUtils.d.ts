@@ -9,6 +9,7 @@ export declare class InterleaverUtils implements AudioUtils {
     constructor(interleaverParams: InterleaverParams);
     setAudioData(audioData: Uint8Array[]): this;
     interleave(): this;
-    checkVolume(): this;
+    checkPreProcessVolume(): this;
+    checkPostProcessVolume(): this;
     getAudioData(): Uint8Array;
 }

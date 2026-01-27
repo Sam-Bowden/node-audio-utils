@@ -4,9 +4,9 @@ exports.changeVolume = changeVolume;
 const IsLittleEndian_1 = require("../General/IsLittleEndian");
 const GetMethodName_1 = require("../General/GetMethodName");
 const GetValueRange_1 = require("../General/GetValueRange");
-function changeVolume(audioData, params) {
+function changeVolume(audioData, params, volume) {
     const bytesPerElement = params.bitDepth / 8;
-    const volume = (params.volume) / 100;
+    volume /= 100;
     const isLe = (0, IsLittleEndian_1.isLittleEndian)(params.endianness);
     const valueRange = (0, GetValueRange_1.getValueRange)(params.bitDepth, false);
     const getSampleMethod = `get${(0, GetMethodName_1.getMethodName)(params.bitDepth, params.unsigned)}`;
@@ -18,5 +18,4 @@ function changeVolume(audioData, params) {
             : sample * volume;
         audioData[setSampleMethod](index, volumedSample, isLe);
     }
-    params.volume = 100;
 }

@@ -11,7 +11,8 @@ export declare class MixerUtils implements AudioUtils {
     constructor(mixerParams: MixerParams);
     setAudioData(audioData: Uint8Array[]): this;
     mix(): this;
-    checkVolume(): this;
+    checkPreProcessVolume(): this;
+    checkPostProcessVolume(): this;
     applyGate(): this;
     applyDownwardCompressor(): this;
     getAudioData(): Uint8Array;

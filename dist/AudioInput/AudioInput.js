@@ -110,9 +110,10 @@ class AudioInput extends stream_1.Writable {
             .checkChannelsCount()
             .checkIntType()
             .checkEndianness()
-            .checkVolume()
+            .checkPreProcessVolume()
             .applyGate()
             .applyDownwardCompressor()
+            .checkPostProcessVolume()
             .getAudioData();
     }
     removeInputSelf() {

@@ -28,9 +28,10 @@ class AudioMixer extends stream_1.Readable {
             const dataCollection = availableInputs.map((input) => input.getData(minDataSize));
             const mixedData = this.audioUtils.setAudioData(dataCollection)
                 .mix()
-                .checkVolume()
+                .checkPreProcessVolume()
                 .applyGate()
                 .applyDownwardCompressor()
+                .checkPostProcessVolume()
                 .getAudioData();
             this.unshift(mixedData);
         }
