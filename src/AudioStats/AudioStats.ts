@@ -1,24 +1,50 @@
-import { Writable } from 'stream';
-import { ModifiedDataView } from '../ModifiedDataView/ModifiedDataView';
-import { type SampleRate, type BitDepth } from '../Types/AudioTypes';
+import {Writable} from 'stream';
+import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
+import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
 
-import { type Channel, type PCMMonitor, PcmMonitor } from '../../pcm-monitor';
+import {
+	type Channel, type PCMMonitor, PcmMonitor, type PCMStats,
+} from '../../pcm-monitor';
+import {RMSMonitor} from './RMSMonitor';
 
 export class AudioStats extends Writable {
+	/** Generic audio monitors from EBUR128 crate (LUFS, LRA, true peak) */
 	private readonly monitor: PCMMonitor;
+	private readonly rmsMonitors: RMSMonitor[];
 
 	constructor(readonly params: LoudnessMonitorParams) {
 		super();
+		console.log(params)
 		this.monitor = PcmMonitor.new(params.channels, params.sampleRate);
+		this.rmsMonitors = params.channels.map(() => new RMSMonitor());
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void {
-		this.monitor.addSamples(normaliseChunk(chunk, this.params.bitDepth));
+		const samples = normaliseChunk(chunk, this.params.bitDepth);
+		this.monitor.addSamples(samples);
+		for (const sample of samples) {
+			this.rmsMonitors.forEach(m => {
+				m.onSample(sample);
+			});
+		}
+
 		callback();
 	}
 
-	public getStats() {
-		return this.monitor.getStats();
+	public getStats(): PCMStats & {rms: number[]} {
+		const stats = this.monitor.getStats() as PCMStats & {rms: number[]};
+		stats.rms = this.rmsMonitors.map(m => m.getRMS());
+		return stats;
+	}
+
+	/** Resets the peak and rms measurements.
+	 * Intended to be called at the stats update frequency of the PCMMonitor module.
+	 */
+	public resetPeaks() {
+		this.monitor.resetPeaks();
+		this.rmsMonitors.forEach(m => {
+			m.reset();
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function

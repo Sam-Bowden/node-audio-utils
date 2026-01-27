@@ -87,6 +87,12 @@ impl PCMMonitor {
             true_peaks_dbtp,
         })
     }
+
+    #[napi]
+    pub fn reset_peaks(&self) {
+        let mut monitor = self.inner.lock().unwrap();
+        monitor.reset_peaks();
+    }
 }
 
 #[napi]

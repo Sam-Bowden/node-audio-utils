@@ -1,12 +1,12 @@
 import 'mocha';
-import { expect } from 'chai';
-import { AudioStats } from './AudioStats';
-import { Channel } from '../../pcm-monitor';
+import {expect} from 'chai';
+import {AudioStats} from './AudioStats';
+import {Channel} from '../../pcm-monitor';
 
 /** Generic so I can verify the rust implementation against the existing tests */
 abstract class LoudnessStatsGeneric {
 	abstract _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void;
-	abstract getStats(): { mLufs: number; sLufs: number; iLufs: number };
+	abstract getStats(): {mLufs: number; sLufs: number; iLufs: number};
 }
 
 type WaveParams = {
@@ -208,16 +208,16 @@ describe('LoudnessStats', () => {
 	it('Passes EBU Test case #9', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		for (let i = 0; i < 3; i++) {
-			sendWave(loudnessStats, { durationMs: 1_340, dBFS: -20.0 });
-			sendWave(loudnessStats, { durationMs: 1_660, dBFS: -30.0 });
+			sendWave(loudnessStats, {durationMs: 1_340, dBFS: -20.0});
+			sendWave(loudnessStats, {durationMs: 1_660, dBFS: -30.0});
 		}
 
 		// S LUFS stabilises after 3s
 		expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
 		for (let i = 0; i < 2; i++) {
-			sendWave(loudnessStats, { durationMs: 1_340, dBFS: -20.0 });
+			sendWave(loudnessStats, {durationMs: 1_340, dBFS: -20.0});
 			expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
-			sendWave(loudnessStats, { durationMs: 1_660, dBFS: -30.0 });
+			sendWave(loudnessStats, {durationMs: 1_660, dBFS: -30.0});
 			expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
 		}
 	});
@@ -228,10 +228,10 @@ describe('LoudnessStats', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		let maxMLUFS = -Infinity;
 		for (let i = 0; i < 20; i++) {
-			sendSilence(loudnessStats, { durationMs: i * 150 });
-			sendWave(loudnessStats, { durationMs: 3_000, dBFS: i - 38.0 });
+			sendSilence(loudnessStats, {durationMs: i * 150});
+			sendWave(loudnessStats, {durationMs: 3_000, dBFS: i - 38.0});
 			maxMLUFS = Math.max(maxMLUFS, loudnessStats.getStats().mLufs);
-			sendSilence(loudnessStats, { durationMs: 3_000 - (i * 150) });
+			sendSilence(loudnessStats, {durationMs: 3_000 - (i * 150)});
 			expect(maxMLUFS).to.be.approximately(i - 38.0, 0.1);
 		}
 	}).timeout(4_000);
@@ -239,15 +239,15 @@ describe('LoudnessStats', () => {
 	it('Passes EBU Test case #12', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		for (let i = 0; i < 3; i++) {
-			sendWave(loudnessStats, { durationMs: 180, dBFS: -20.0 });
-			sendWave(loudnessStats, { durationMs: 220, dBFS: -30.0 });
+			sendWave(loudnessStats, {durationMs: 180, dBFS: -20.0});
+			sendWave(loudnessStats, {durationMs: 220, dBFS: -30.0});
 		}
 
 		// M LUFS stabilises after 1s
 		expect(loudnessStats.getStats().mLufs).to.be.approximately(-23.0, 0.1);
 		for (let i = 0; i < 22; i++) {
-			sendWave(loudnessStats, { durationMs: 180, dBFS: -20.0 });
-			sendWave(loudnessStats, { durationMs: 220, dBFS: -30.0 });
+			sendWave(loudnessStats, {durationMs: 180, dBFS: -20.0});
+			sendWave(loudnessStats, {durationMs: 220, dBFS: -30.0});
 			expect(loudnessStats.getStats().mLufs).to.be.approximately(-23.0, 0.1);
 		}
 	});
