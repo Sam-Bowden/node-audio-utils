@@ -1,4 +1,5 @@
 /* eslint-disable no-bitwise */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
 export class ModifiedDataView extends DataView<ArrayBufferLike> {
 	public getInt24(byteOffset: number, littleEndian?: boolean): number {
 		const byte = this.getByte(byteOffset, littleEndian);

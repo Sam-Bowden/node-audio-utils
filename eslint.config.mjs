@@ -6,7 +6,7 @@ export default [
 	{files: ['**/*.{js,mjs,cjs,ts}']},
 	{files: ['**/*.js'], languageOptions: {sourceType: 'script'}},
 	{languageOptions: {globals: globals.node}},
-	{ignores: ['node_modules', 'dist', 'eslint.config.mjs']},
+	{ignores: ['node_modules', 'dist', 'eslint.config.mjs', 'pcm-monitor']},
 	...tseslint.configs.recommended,
 	...xoTypeScript,
 	{rules: {'@typescript-eslint/naming-convention': 'off'}},
