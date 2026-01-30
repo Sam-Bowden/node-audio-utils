@@ -14,7 +14,6 @@ export class AudioStats extends Writable {
 
 	constructor(readonly params: LoudnessMonitorParams) {
 		super();
-		console.log(params)
 		this.monitor = PcmMonitor.new(params.channels, params.sampleRate);
 		this.rmsMonitors = params.channels.map(() => new RMSMonitor());
 	}
