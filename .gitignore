@@ -1,7 +1,6 @@
 # Build output
 dist/
 pcm-monitor/src/target
-pcm-monitor/dist
 
 # Logs
 logs
