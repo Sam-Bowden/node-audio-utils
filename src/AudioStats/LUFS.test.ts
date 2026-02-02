@@ -1,7 +1,7 @@
 import 'mocha';
 import {expect} from 'chai';
 import {AudioStats} from './AudioStats';
-import {Channel} from '../../pcm-monitor';
+import {Channel} from '../../pcm-monitor/dist';
 
 /** Generic so I can verify the rust implementation against the existing tests */
 abstract class LoudnessStatsGeneric {

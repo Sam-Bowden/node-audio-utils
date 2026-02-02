@@ -8,8 +8,8 @@
     "lint": "eslint",
     "build": "npm run build-napi && rm -rf dist && eslint && tsc",
     "test": "mocha -r ts-node/register 'src/**/*.test.ts' --exit",
-    "build-napi": "napi build --release --manifest-path pcm-monitor/Cargo.toml"
-  },  
+    "build-napi": "napi build -v --release --manifest-path pcm-monitor/src/Cargo.toml --output-dir pcm-monitor/dist"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
@@ -47,5 +47,11 @@
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
-  }
+  },
+	"exports": {
+		".": {
+			"require": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	}
 }

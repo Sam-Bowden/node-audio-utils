@@ -1,7 +1,7 @@
 # Build output
 dist/
-pcm-monitor/target/
-pcm-monitor/index*
+pcm-monitor/src/target
+pcm-monitor/dist
 
 # Logs
 logs

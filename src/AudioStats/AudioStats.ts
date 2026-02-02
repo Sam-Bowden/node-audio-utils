@@ -4,7 +4,7 @@ import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
 
 import {
 	type Channel, type PCMMonitor, PcmMonitor, type PCMStats,
-} from '../../pcm-monitor';
+} from '../../pcm-monitor/dist';
 import {RMSMonitor} from './RMSMonitor';
 
 export class AudioStats extends Writable {
