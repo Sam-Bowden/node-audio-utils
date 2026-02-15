@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Samuel-Bowden/node-audio-utils"
+    "url": "git+https://github.com/Sam-Bowden/node-audio-utils"
   },
   "keywords": [
     "pcm",
@@ -23,7 +23,7 @@
     "audio",
     "mixer"
   ],
-  "authors": ["Alex Pl (https://github.com/AlexPl3331)", "Samuel Bowden (https://github.com/Samuel-Bowden)"],
+  "authors": ["Alex Pl (https://github.com/AlexPl3331)", "Sam Bowden (https://github.com/Sam-Bowden)"],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.5.4",
