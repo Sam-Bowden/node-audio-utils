@@ -1,39 +1,81 @@
 import {Writable} from 'stream';
-import {type StatsParams} from '../Types/ParamTypes';
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
-import {isLittleEndian} from '../Utils/General/IsLittleEndian';
-import {type BitDepth, type IntType} from '../Types/AudioTypes';
-import {getMethodName} from '../Utils/General/GetMethodName';
-import {Stats} from '../Utils/Stats/Stats';
+import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
+
+import {
+	type Channel, type PCMMonitor, PcmMonitor, type PCMStats,
+} from '../../pcm-monitor/dist';
+import {RMSMonitor} from './RMSMonitor';
 
 export class AudioStats extends Writable {
-	public readonly stats: Stats;
-	public readonly statsParams: StatsParams;
+	/** Generic audio monitors from EBUR128 crate (LUFS, LRA, true peak) */
+	private readonly monitor: PCMMonitor;
+	private readonly rmsMonitors: RMSMonitor[];
 
-	constructor(statsParams: StatsParams) {
+	constructor(readonly params: LoudnessMonitorParams) {
 		super();
-		this.statsParams = statsParams;
-		this.stats = new Stats(this.statsParams.bitDepth, this.statsParams.channels);
-	}
-
-	reset() {
-		this.stats.reset();
+		this.monitor = PcmMonitor.new(params.channels, params.sampleRate);
+		this.rmsMonitors = params.channels.map(() => new RMSMonitor());
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void {
-		const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
-
-		const bytesPerElement = this.statsParams.bitDepth / 8;
-
-		const isLe = isLittleEndian(this.statsParams.endianness);
-
-		const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(this.statsParams.bitDepth, this.statsParams.unsigned)}`;
-
-		for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
-			const sample = audioData[getSampleMethod](index, isLe);
-			this.stats.update(sample);
+		const samples = normaliseChunk(chunk, this.params.bitDepth);
+		this.monitor.addSamples(samples);
+		for (const sample of samples) {
+			this.rmsMonitors.forEach(m => {
+				m.onSample(sample);
+			});
 		}
 
 		callback();
 	}
+
+	public getStats(): PCMStats & {rms: number[]} {
+		const stats = this.monitor.getStats() as PCMStats & {rms: number[]};
+		stats.rms = this.rmsMonitors.map(m => m.getRMS());
+		return stats;
+	}
+
+	/** Resets the peak and rms measurements.
+	 * Intended to be called at the stats update frequency of the PCMMonitor module.
+	 */
+	public resetPeaks() {
+		this.monitor.resetPeaks();
+		this.rmsMonitors.forEach(m => {
+			m.reset();
+		});
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	public close() { }
+}
+
+export type LoudnessMonitorParams = {
+	sampleRate: SampleRate;
+	channels: Channel[];
+	bitDepth: BitDepth;
+};
+
+/** Converts a raw buffer of little-endian signed integer samples to an array of floats normalised to [-1, 1] */
+function normaliseChunk(chunk: Uint8Array, bitDepth: BitDepth): Float64Array {
+	const bytesPerSample = bitDepth / 8;
+	const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
+
+	// Normalisation coefficients
+	const N = 2 ** bitDepth;
+	const a = 2 / (N - 1);
+	const b = 1 - ((N - 2) / (N - 1));
+
+	// Normalize from signed bitDepth to [-1, 1]
+	const normaliseSample = (sample: number) => (a * sample) + b;
+
+	const numSamples = Math.floor(audioData.byteLength / bytesPerSample);
+
+	const samples = new Float64Array(numSamples);
+	for (let i = 0; i < numSamples; i++) {
+		const rawSample = audioData[`getInt${bitDepth}`](i * bytesPerSample, true);
+		samples[i] = normaliseSample(rawSample);
+	}
+
+	return samples;
 }
