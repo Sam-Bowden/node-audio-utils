@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ModifiedDataView = void 0;
 /* eslint-disable no-bitwise */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
 class ModifiedDataView extends DataView {
     getInt24(byteOffset, littleEndian) {
         const byte = this.getByte(byteOffset, littleEndian);

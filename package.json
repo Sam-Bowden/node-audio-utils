@@ -5,7 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && eslint && tsc"
+    "lint": "eslint",
+    "build": "npm run build-napi && rm -rf dist && eslint && tsc",
+    "test": "mocha -r ts-node/register 'src/**/*.test.ts' --exit",
+    "build-napi": "napi build -v --release --manifest-path pcm-monitor/src/Cargo.toml --output-dir pcm-monitor/dist"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -25,13 +28,27 @@
   ],
   "authors": ["Alex Pl (https://github.com/AlexPl3331)", "Sam Bowden (https://github.com/Sam-Bowden)"],
   "license": "MIT",
+  "dependencies": {
+    "@napi-rs/cli": "^3.5.1"
+  },
   "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^22.5.4",
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
+    "chai": "^4.3.7",
     "eslint": "^9.10.0",
     "eslint-config-xo-typescript": "^6.0.0",
     "globals": "^15.9.0",
-    "typescript": "^5.6.2"
-  }
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+	"exports": {
+		".": {
+			"require": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	}
 }

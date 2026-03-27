@@ -1,0 +1,15 @@
+[package]
+name = "pcm-monitor"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+ebur128 = {git = "ssh://git@github.com/DanielHarris01/ebur128", rev = "dbf0c8887e80329aad59c32fe563477cc3514424"}
+napi = "3"
+napi-derive = "3"
+
+[build-dependencies]
+napi-build = "1"
