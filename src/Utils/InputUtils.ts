@@ -14,6 +14,7 @@ import {changeChannelsCount} from './AudioUtils/СhangeChannelsCount';
 import {changeEndianness} from './AudioUtils/ChangeEndianness';
 import {applyGate} from './AudioUtils/ApplyGate';
 import {applyDownwardCompressor} from './AudioUtils/ApplyDownwardCompressor';
+import {applyDownmix} from './AudioUtils/ApplyDownmix';
 import {ProcessingStats} from './Stats/ProcessingStats';
 import {updateStats} from './AudioUtils/UpdateStats';
 
@@ -72,6 +73,14 @@ export class InputUtils implements AudioUtils {
 	public checkSampleRate(): this {
 		if (this.changedParams.sampleRate !== this.audioMixerParams.sampleRate) {
 			this.audioData = changeSampleRate(this.audioData, this.changedParams, this.audioMixerParams);
+		}
+
+		return this;
+	}
+
+	public applyDownmix(): this {
+		if (this.changedParams.downmixMatrix !== undefined) {
+			this.audioData = applyDownmix(this.audioData, this.changedParams);
 		}
 
 		return this;
