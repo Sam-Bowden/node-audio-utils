@@ -16,6 +16,7 @@ export declare class InputUtils implements AudioUtils {
     checkBitDepth(): this;
     checkSampleRate(): this;
     applyDownmix(): this;
+    checkActiveChannelsCount(): this;
     checkChannelsCount(): this;
     checkPreProcessVolume(): this;
     checkPostProcessVolume(): this;
