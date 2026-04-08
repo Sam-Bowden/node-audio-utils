@@ -6,7 +6,8 @@ const IsLittleEndian_1 = require("../General/IsLittleEndian");
 const GetMethodName_1 = require("../General/GetMethodName");
 function stripChannels(audioData, params) {
     const { activeChannels } = params;
-    if (activeChannels === undefined || activeChannels >= params.channels) {
+    const channelOffset = params.activeChannelsOffset ?? 0;
+    if (activeChannels === undefined || (channelOffset === 0 && activeChannels >= params.channels)) {
         return audioData;
     }
     const bytesPerElement = params.bitDepth / 8;
@@ -17,7 +18,7 @@ function stripChannels(audioData, params) {
     const outputData = new Uint8Array(frameCount * activeChannels * bytesPerElement);
     const outputDataView = new ModifiedDataView_1.ModifiedDataView(outputData.buffer);
     for (let frame = 0; frame < frameCount; frame++) {
-        const inBase = frame * params.channels * bytesPerElement;
+        const inBase = (frame * params.channels * bytesPerElement) + (channelOffset * bytesPerElement);
         const outBase = frame * activeChannels * bytesPerElement;
         for (let ch = 0; ch < activeChannels; ch++) {
             const sample = audioData[getSampleMethod](inBase + (ch * bytesPerElement), isLe);

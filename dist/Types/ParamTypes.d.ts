@@ -28,6 +28,7 @@ export type InputParams = {
     correctByteSize?: boolean;
     downmixMatrix?: number[][];
     activeChannels?: number;
+    activeChannelsOffset?: number;
 } & BasedParams;
 export type StatsParams = Omit<BasedParams, 'volume'>;
 export type OmitSomeParams<T> = Omit<T, 'sampleRate' | 'channels' | 'bitDepth'>;

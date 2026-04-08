@@ -6,8 +6,9 @@ import {getMethodName} from '../General/GetMethodName';
 
 export function stripChannels(audioData: ModifiedDataView, params: InputParams): ModifiedDataView {
 	const {activeChannels} = params;
+	const channelOffset = params.activeChannelsOffset ?? 0;
 
-	if (activeChannels === undefined || activeChannels >= params.channels) {
+	if (activeChannels === undefined || (channelOffset === 0 && activeChannels >= params.channels)) {
 		return audioData;
 	}
 
@@ -22,7 +23,7 @@ export function stripChannels(audioData: ModifiedDataView, params: InputParams):
 	const outputDataView = new ModifiedDataView(outputData.buffer);
 
 	for (let frame = 0; frame < frameCount; frame++) {
-		const inBase = frame * params.channels * bytesPerElement;
+		const inBase = (frame * params.channels * bytesPerElement) + (channelOffset * bytesPerElement);
 		const outBase = frame * activeChannels * bytesPerElement;
 
 		for (let ch = 0; ch < activeChannels; ch++) {
