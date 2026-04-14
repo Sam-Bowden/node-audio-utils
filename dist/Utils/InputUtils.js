@@ -18,6 +18,7 @@ const UpdateStats_1 = require("./AudioUtils/UpdateStats");
 class InputUtils {
     constructor(inputParams, mixerParams) {
         this.emptyData = new Uint8Array(0);
+        this.upmixOutputBuffer = new Uint8Array(0);
         this.audioInputParams = inputParams;
         this.audioMixerParams = mixerParams;
         this.changedParams = { ...this.audioInputParams };
@@ -25,6 +26,18 @@ class InputUtils {
         this.gateState = { holdSamplesRemaining: inputParams.gateHoldSamples, attenuation: 1 };
         this.downwardCompressorState = { ratio: 1 };
         this.processingStats = new ProcessingStats_1.ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
+        if (inputParams.upmixOptions !== undefined) {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const upmixModule = require('node-libavfilter-upmix');
+            this.upmix = new upmixModule.Upmix({
+                sampleRate: inputParams.sampleRate,
+                bitDepth: inputParams.bitDepth,
+                inputLayout: channelCountToLayout(inputParams.channels),
+                outputLayout: inputParams.upmixOptions.outputLayout,
+                winSize: inputParams.upmixOptions.winSize,
+            });
+            this.upmixOutputChannels = layoutToChannelCount(inputParams.upmixOptions.outputLayout);
+        }
     }
     setAudioData(audioData) {
         this.audioData = new ModifiedDataView_1.ModifiedDataView(audioData.buffer, audioData.byteOffset, audioData.length);
@@ -55,6 +68,37 @@ class InputUtils {
             this.changedParams.channels = this.changedParams.downmixMatrix.length;
         }
         return this;
+    }
+    applyUpmix() {
+        if (this.upmix === undefined) {
+            return this;
+        }
+        const bytesPerSample = this.changedParams.bitDepth / 8;
+        const inputSamples = this.audioData.byteLength / (bytesPerSample * this.changedParams.channels);
+        const expectedOutputBytes = inputSamples * this.upmixOutputChannels * bytesPerSample;
+        const input = Buffer.from(this.audioData.buffer, this.audioData.byteOffset, this.audioData.byteLength);
+        const output = this.upmix.process(input);
+        if (output.length > 0) {
+            const combined = new Uint8Array(this.upmixOutputBuffer.length + output.length);
+            combined.set(this.upmixOutputBuffer);
+            combined.set(new Uint8Array(output.buffer, output.byteOffset, output.byteLength), this.upmixOutputBuffer.length);
+            this.upmixOutputBuffer = combined;
+        }
+        if (this.upmixOutputBuffer.length >= expectedOutputBytes) {
+            const released = this.upmixOutputBuffer.slice(0, expectedOutputBytes);
+            this.upmixOutputBuffer = this.upmixOutputBuffer.slice(expectedOutputBytes);
+            this.audioData = new ModifiedDataView_1.ModifiedDataView(released.buffer, released.byteOffset, released.byteLength);
+            this.changedParams.channels = this.upmixOutputChannels;
+        }
+        // If not enough output accumulated, fall through — checkChannelsCount() zero-pads as fallback
+        return this;
+    }
+    destroy() {
+        this.upmix?.close();
+    }
+    resetUpmix() {
+        this.upmix?.reset();
+        this.upmixOutputBuffer = new Uint8Array(0);
     }
     checkActiveChannelsCount() {
         const { activeChannels } = this.changedParams;
@@ -112,3 +156,30 @@ class InputUtils {
     }
 }
 exports.InputUtils = InputUtils;
+function channelCountToLayout(channels) {
+    switch (channels) {
+        case 1: return 'mono';
+        case 2: return 'stereo';
+        case 4: return 'quad';
+        case 5: return '5.0';
+        case 6: return '5.1';
+        case 7: return '6.1';
+        case 8: return '7.1';
+        default: return `${channels}c`;
+    }
+}
+function layoutToChannelCount(layout) {
+    switch (layout) {
+        case 'mono': return 1;
+        case 'stereo': return 2;
+        case '2.1':
+        case '3.0': return 3;
+        case 'quad':
+        case '4.0': return 4;
+        case '5.0': return 5;
+        case '5.1': return 6;
+        case '6.1': return 7;
+        case '7.1': return 8;
+        default: throw new Error(`Unknown channel layout: '${layout}'`);
+    }
+}

@@ -1,5 +1,6 @@
 import {type AudioUtils} from '../Types/AudioUtils';
 import {type InputParams, type MixerParams} from '../Types/ParamTypes';
+import type {Upmix as UpmixInstance} from 'node-libavfilter-upmix';
 import {type DownwardCompressorState, type GateState} from './State';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
@@ -33,6 +34,10 @@ export class InputUtils implements AudioUtils {
 	private readonly gateState: GateState;
 	private readonly downwardCompressorState: DownwardCompressorState;
 
+	private readonly upmix: UpmixInstance | undefined;
+	private readonly upmixOutputChannels: number | undefined;
+	private upmixOutputBuffer: Uint8Array = new Uint8Array(0);
+
 	constructor(inputParams: InputParams, mixerParams: MixerParams) {
 		this.audioInputParams = inputParams;
 		this.audioMixerParams = mixerParams;
@@ -46,6 +51,20 @@ export class InputUtils implements AudioUtils {
 		this.downwardCompressorState = {ratio: 1};
 
 		this.processingStats = new ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
+
+		if (inputParams.upmixOptions !== undefined) {
+			type UpmixCtor = new (options: {sampleRate: number; bitDepth: 16 | 32; inputLayout: string; outputLayout: string; winSize?: number}) => UpmixInstance;
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
+			const upmixModule = require('node-libavfilter-upmix') as {Upmix: UpmixCtor};
+			this.upmix = new upmixModule.Upmix({
+				sampleRate: inputParams.sampleRate,
+				bitDepth: inputParams.bitDepth as 16 | 32,
+				inputLayout: channelCountToLayout(inputParams.channels),
+				outputLayout: inputParams.upmixOptions.outputLayout,
+				winSize: inputParams.upmixOptions.winSize,
+			});
+			this.upmixOutputChannels = layoutToChannelCount(inputParams.upmixOptions.outputLayout);
+		}
 	}
 
 	public setAudioData(audioData: Uint8Array): this {
@@ -86,6 +105,46 @@ export class InputUtils implements AudioUtils {
 		}
 
 		return this;
+	}
+
+	public applyUpmix(): this {
+		if (this.upmix === undefined) {
+			return this;
+		}
+
+		const bytesPerSample = this.changedParams.bitDepth / 8;
+		const inputSamples = this.audioData.byteLength / (bytesPerSample * this.changedParams.channels);
+		const expectedOutputBytes = inputSamples * this.upmixOutputChannels! * bytesPerSample;
+
+		const input = Buffer.from(this.audioData.buffer, this.audioData.byteOffset, this.audioData.byteLength);
+		const output = this.upmix.process(input);
+
+		if (output.length > 0) {
+			const combined = new Uint8Array(this.upmixOutputBuffer.length + output.length);
+			combined.set(this.upmixOutputBuffer);
+			combined.set(new Uint8Array(output.buffer, output.byteOffset, output.byteLength), this.upmixOutputBuffer.length);
+			this.upmixOutputBuffer = combined;
+		}
+
+		if (this.upmixOutputBuffer.length >= expectedOutputBytes) {
+			const released = this.upmixOutputBuffer.slice(0, expectedOutputBytes);
+			this.upmixOutputBuffer = this.upmixOutputBuffer.slice(expectedOutputBytes);
+			this.audioData = new ModifiedDataView(released.buffer, released.byteOffset, released.byteLength);
+			this.changedParams.channels = this.upmixOutputChannels!;
+		}
+
+		// If not enough output accumulated, fall through — checkChannelsCount() zero-pads as fallback
+
+		return this;
+	}
+
+	public destroy(): void {
+		this.upmix?.close();
+	}
+
+	public resetUpmix(): void {
+		this.upmix?.reset();
+		this.upmixOutputBuffer = new Uint8Array(0);
 	}
 
 	public checkActiveChannelsCount(): this {
@@ -171,5 +230,34 @@ export class InputUtils implements AudioUtils {
 
 	public getAudioData(): Uint8Array {
 		return new Uint8Array(this.audioData.buffer, this.audioData.byteOffset, this.audioData.byteLength);
+	}
+}
+
+function channelCountToLayout(channels: number): string {
+	switch (channels) {
+		case 1: return 'mono';
+		case 2: return 'stereo';
+		case 4: return 'quad';
+		case 5: return '5.0';
+		case 6: return '5.1';
+		case 7: return '6.1';
+		case 8: return '7.1';
+		default: return `${channels}c`;
+	}
+}
+
+function layoutToChannelCount(layout: string): number {
+	switch (layout) {
+		case 'mono': return 1;
+		case 'stereo': return 2;
+		case '2.1':
+		case '3.0': return 3;
+		case 'quad':
+		case '4.0': return 4;
+		case '5.0': return 5;
+		case '5.1': return 6;
+		case '6.1': return 7;
+		case '7.1': return 8;
+		default: throw new Error(`Unknown channel layout: '${layout}'`);
 	}
 }

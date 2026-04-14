@@ -30,6 +30,7 @@ class AudioInput extends stream_1.Writable {
     }
     clear() {
         this.audioData = new Uint8Array(0);
+        this.audioUtils.resetUpmix();
     }
     _write(chunk, _, callback) {
         let processedLength = 0;
@@ -57,6 +58,7 @@ class AudioInput extends stream_1.Writable {
         return processedLength;
     }
     _destroy(error, callback) {
+        this.audioUtils.destroy();
         if (!this.closed) {
             if ((this.audioData.length === 0 && this.correctionBuffer.length === 0)) {
                 this.removeInputSelf();
@@ -112,6 +114,7 @@ class AudioInput extends stream_1.Writable {
             .checkSampleRate()
             .checkActiveChannelsCount()
             .applyDownmix()
+            .applyUpmix()
             .checkChannelsCount()
             .checkIntType()
             .checkEndianness()

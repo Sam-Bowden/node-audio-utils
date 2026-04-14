@@ -24,11 +24,16 @@ export type InterleaverParams = {
     highWaterMark?: number;
     maxBufferLength?: number;
 } & BasedParams;
+export type UpmixOptions = {
+    outputLayout: 'stereo' | '5.1' | '7.1';
+    winSize?: number;
+};
 export type InputParams = {
     correctByteSize?: boolean;
     downmixMatrix?: number[][];
     activeChannels?: number;
     activeChannelsOffset?: number;
+    upmixOptions?: UpmixOptions;
 } & BasedParams;
 export type StatsParams = Omit<BasedParams, 'volume'>;
 export type OmitSomeParams<T> = Omit<T, 'sampleRate' | 'channels' | 'bitDepth'>;

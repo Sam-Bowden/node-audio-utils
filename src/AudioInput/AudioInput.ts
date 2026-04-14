@@ -51,6 +51,7 @@ export class AudioInput extends Writable {
 
 	public clear(): void {
 		this.audioData = new Uint8Array(0);
+		this.audioUtils.resetUpmix();
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): number {
@@ -91,6 +92,8 @@ export class AudioInput extends Writable {
 	}
 
 	public _destroy(error: Error, callback: (error?: Error) => void): void {
+		this.audioUtils.destroy();
+
 		if (!this.closed) {
 			if ((this.audioData.length === 0 && this.correctionBuffer.length === 0)) {
 				this.removeInputSelf();
@@ -169,6 +172,7 @@ export class AudioInput extends Writable {
 			.checkSampleRate()
 			.checkActiveChannelsCount()
 			.applyDownmix()
+			.applyUpmix()
 			.checkChannelsCount()
 			.checkIntType()
 			.checkEndianness()
