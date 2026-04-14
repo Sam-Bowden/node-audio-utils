@@ -101,7 +101,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         if (graph_ == nullptr)
             throw std::runtime_error("Failed to allocate filter graph");
 
-        // --- abuffer ---
         const AVFilter *abuffer = avfilter_get_by_name("abuffer");
         if (abuffer == nullptr) {
             freeGraph();
@@ -121,7 +120,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
             throw std::runtime_error("Failed to create abuffer: " + avErr(ret));
         }
 
-        // --- surround ---
         const AVFilter *surround = avfilter_get_by_name("surround");
         if (surround == nullptr) {
             freeGraph();
@@ -142,7 +140,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                      avErr(ret));
         }
 
-        // --- abuffersink ---
         const AVFilter *abuffersink = avfilter_get_by_name("abuffersink");
         if (abuffersink == nullptr) {
             freeGraph();
@@ -157,7 +154,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                      avErr(ret));
         }
 
-        // --- link ---
         ret = avfilter_link(srcCtx_, 0, surroundCtx, 0);
         if (ret < 0) {
             freeGraph();
@@ -165,7 +161,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                      avErr(ret));
         }
 
-        // --- aformat (fltp → native int) ---
         const AVFilter *aformat = avfilter_get_by_name("aformat");
         if (aformat == nullptr) {
             freeGraph();
@@ -217,7 +212,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         frame->format = nativeFmt_;
         frame->sample_rate = sampleRate_;
         frame->nb_samples = nbSamples;
-        frame->pts = AV_NOPTS_VALUE;
         av_channel_layout_default(&frame->ch_layout, inChannels_);
 
         int ret = av_frame_get_buffer(frame, 0);
@@ -231,7 +225,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         return frame;
     }
 
-    // Pull all available frames from the sink into a flat byte vector
     std::vector<uint8_t> drainSink() {
         std::vector<uint8_t> result;
 
@@ -249,9 +242,9 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                          avErr(ret));
             }
 
-            size_t chunkBytes =
-                static_cast<size_t>(outFrame->nb_samples) *
-                outFrame->ch_layout.nb_channels * (bitDepth_ / 8);
+            size_t chunkBytes = static_cast<size_t>(outFrame->nb_samples) *
+                                outFrame->ch_layout.nb_channels *
+                                (bitDepth_ / 8);
             result.insert(result.end(), outFrame->data[0],
                           outFrame->data[0] + chunkBytes);
             av_frame_unref(outFrame);
@@ -299,7 +292,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
             return env.Undefined();
         }
     }
-
 
     void Close(const Napi::CallbackInfo & /* info */) { freeGraph(); }
 
