@@ -10,7 +10,6 @@ extern "C" {
 #include <libavutil/samplefmt.h>
 }
 
-#include <cstring>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -214,14 +213,16 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         frame->nb_samples = nbSamples;
         av_channel_layout_default(&frame->ch_layout, inChannels_);
 
-        int ret = av_frame_get_buffer(frame, 0);
-        if (ret < 0) {
+        frame->buf[0] = av_buffer_create(
+            const_cast<uint8_t *>(data), byteLen, [](void *, uint8_t *) {},
+            nullptr, AV_BUFFER_FLAG_READONLY);
+        if (frame->buf[0] == nullptr) {
             av_frame_free(&frame);
-            throw std::runtime_error("Failed to allocate frame buffer: " +
-                                     avErr(ret));
+            throw std::runtime_error("Failed to wrap input buffer");
         }
+        frame->data[0] = const_cast<uint8_t *>(data);
+        frame->linesize[0] = static_cast<int>(byteLen);
 
-        std::memcpy(frame->data[0], data, byteLen);
         return frame;
     }
 
