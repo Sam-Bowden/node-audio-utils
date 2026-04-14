@@ -9,7 +9,7 @@ export interface UpmixOptions {
 export declare class Upmix {
 	constructor(options: UpmixOptions)
 	process(input: Buffer): Buffer
-	flush(): Buffer
+
 	close(): void
 	reset(): void
 }

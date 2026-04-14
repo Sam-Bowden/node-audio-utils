@@ -28,7 +28,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
             DefineClass(env, "Upmix",
                         {
                             InstanceMethod("process", &Upmix::Process),
-                            InstanceMethod("flush", &Upmix::Flush),
+
                             InstanceMethod("close", &Upmix::Close),
                             InstanceMethod("reset", &Upmix::Reset),
                         });
@@ -76,7 +76,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
     int sampleRate_ = 48000;
     int bitDepth_ = 16;
     int inChannels_ = 2;
-    int64_t ptsCounter_ = 0;
     std::string inputLayout_;
     std::string outputLayout_;
     int winSize_ = 4096;
@@ -206,7 +205,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         frame->format = AV_SAMPLE_FMT_FLTP;
         frame->sample_rate = sampleRate_;
         frame->nb_samples = nbSamples;
-        frame->pts = ptsCounter_;
+        frame->pts = AV_NOPTS_VALUE;
         av_channel_layout_default(&frame->ch_layout, inChannels_);
 
         int ret = av_frame_get_buffer(frame, 0);
@@ -236,7 +235,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
             }
         }
 
-        ptsCounter_ += nbSamples;
         return frame;
     }
 
@@ -348,29 +346,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         }
     }
 
-    Napi::Value Flush(const Napi::CallbackInfo &info) {
-        Napi::Env env = info.Env();
-
-        if (graph_ == nullptr) {
-            return Napi::Buffer<uint8_t>::New(env, 0);
-        }
-
-        try {
-            // Signal end-of-stream to the source
-            int ret = av_buffersrc_close(srcCtx_, ptsCounter_,
-                                         AV_BUFFERSRC_FLAG_PUSH);
-            if (ret < 0 && ret != AVERROR_EOF)
-                throw std::runtime_error("Failed to close buffer source: " +
-                                         avErr(ret));
-
-            auto output = drainSink();
-            return Napi::Buffer<uint8_t>::Copy(env, output.data(),
-                                               output.size());
-        } catch (const std::exception &e) {
-            Napi::Error::New(env, e.what()).ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-    }
 
     void Close(const Napi::CallbackInfo & /* info */) { freeGraph(); }
 
@@ -378,7 +353,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         Napi::Env env = info.Env();
         try {
             freeGraph();
-            ptsCounter_ = 0;
             buildGraph(inputLayout_, outputLayout_, winSize_);
         } catch (const std::exception &e) {
             Napi::Error::New(env, e.what()).ThrowAsJavaScriptException();
