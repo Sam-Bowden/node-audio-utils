@@ -59,6 +59,8 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
             return;
         }
 
+        nativeFmt_ = (bitDepth_ == 16) ? AV_SAMPLE_FMT_S16 : AV_SAMPLE_FMT_S32;
+
         try {
             buildGraph(inputLayout_, outputLayout_, winSize_);
         } catch (const std::exception &e) {
@@ -75,6 +77,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
 
     int sampleRate_ = 48000;
     int bitDepth_ = 16;
+    AVSampleFormat nativeFmt_ = AV_SAMPLE_FMT_S16;
     int inChannels_ = 2;
     std::string inputLayout_;
     std::string outputLayout_;
@@ -122,7 +125,8 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         }
 
         std::ostringstream bufArgs;
-        bufArgs << "sample_rate=" << sampleRate_ << ":sample_fmt=fltp"
+        bufArgs << "sample_rate=" << sampleRate_
+                << ":sample_fmt=" << av_get_sample_fmt_name(nativeFmt_)
                 << ":channel_layout=" << inputLayout << ":time_base=1/"
                 << sampleRate_;
 
@@ -177,10 +181,35 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                      avErr(ret));
         }
 
-        ret = avfilter_link(surroundCtx, 0, sinkCtx_, 0);
+        // --- aformat (fltp → native int) ---
+        const AVFilter *aformat = avfilter_get_by_name("aformat");
+        if (aformat == nullptr) {
+            freeGraph();
+            throw std::runtime_error("aformat filter not found");
+        }
+
+        std::string afmtArgs =
+            std::string("sample_fmts=") + av_get_sample_fmt_name(nativeFmt_);
+        AVFilterContext *afmtCtx = nullptr;
+        ret = avfilter_graph_create_filter(&afmtCtx, aformat, "fmt_out",
+                                           afmtArgs.c_str(), nullptr, graph_);
         if (ret < 0) {
             freeGraph();
-            throw std::runtime_error("Failed to link surround→abuffersink: " +
+            throw std::runtime_error("Failed to create aformat filter: " +
+                                     avErr(ret));
+        }
+
+        ret = avfilter_link(surroundCtx, 0, afmtCtx, 0);
+        if (ret < 0) {
+            freeGraph();
+            throw std::runtime_error("Failed to link surround→aformat: " +
+                                     avErr(ret));
+        }
+
+        ret = avfilter_link(afmtCtx, 0, sinkCtx_, 0);
+        if (ret < 0) {
+            freeGraph();
+            throw std::runtime_error("Failed to link aformat→abuffersink: " +
                                      avErr(ret));
         }
 
@@ -192,8 +221,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         }
     }
 
-    // Deinterleave and normalise to FLTP
-    AVFrame *toFLTP(const uint8_t *data, size_t byteLen) {
+    AVFrame *makeIntFrame(const uint8_t *data, size_t byteLen) {
         int bytesPerSample = bitDepth_ / 8;
         int nbSamples = static_cast<int>(
             byteLen / (static_cast<size_t>(inChannels_) * bytesPerSample));
@@ -202,7 +230,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         if (frame == nullptr)
             throw std::runtime_error("Failed to allocate input AVFrame");
 
-        frame->format = AV_SAMPLE_FMT_FLTP;
+        frame->format = nativeFmt_;
         frame->sample_rate = sampleRate_;
         frame->nb_samples = nbSamples;
         frame->pts = AV_NOPTS_VALUE;
@@ -215,69 +243,8 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                      avErr(ret));
         }
 
-        if (bitDepth_ == 16) {
-            const int16_t *src = reinterpret_cast<const int16_t *>(data);
-            for (int s = 0; s < nbSamples; ++s) {
-                for (int ch = 0; ch < inChannels_; ++ch) {
-                    reinterpret_cast<float *>(frame->data[ch])[s] =
-                        static_cast<float>(src[s * inChannels_ + ch]) /
-                        32768.0f;
-                }
-            }
-        } else {
-            const int32_t *src = reinterpret_cast<const int32_t *>(data);
-            for (int s = 0; s < nbSamples; ++s) {
-                for (int ch = 0; ch < inChannels_; ++ch) {
-                    reinterpret_cast<float *>(frame->data[ch])[s] =
-                        static_cast<float>(src[s * inChannels_ + ch]) /
-                        2147483648.0f;
-                }
-            }
-        }
-
+        std::memcpy(frame->data[0], data, byteLen);
         return frame;
-    }
-
-    // Interleave and scale FLTP back to integer PCM
-    std::vector<uint8_t> fromFLTP(AVFrame *frame) {
-        int channels = frame->ch_layout.nb_channels;
-        int nbSamples = frame->nb_samples;
-        int bytesPerSample = bitDepth_ / 8;
-
-        std::vector<uint8_t> out(static_cast<size_t>(nbSamples) * channels *
-                                 bytesPerSample);
-
-        if (bitDepth_ == 16) {
-            int16_t *dst = reinterpret_cast<int16_t *>(out.data());
-            for (int s = 0; s < nbSamples; ++s) {
-                for (int ch = 0; ch < channels; ++ch) {
-                    float val =
-                        reinterpret_cast<const float *>(frame->data[ch])[s] *
-                        32767.0f;
-                    if (val > 32767.0f)
-                        val = 32767.0f;
-                    if (val < -32768.0f)
-                        val = -32768.0f;
-                    dst[s * channels + ch] = static_cast<int16_t>(val);
-                }
-            }
-        } else {
-            int32_t *dst = reinterpret_cast<int32_t *>(out.data());
-            for (int s = 0; s < nbSamples; ++s) {
-                for (int ch = 0; ch < channels; ++ch) {
-                    float val =
-                        reinterpret_cast<const float *>(frame->data[ch])[s] *
-                        2147483647.0f;
-                    if (val > 2147483647.0f)
-                        val = 2147483647.0f;
-                    if (val < -2147483648.0f)
-                        val = -2147483648.0f;
-                    dst[s * channels + ch] = static_cast<int32_t>(val);
-                }
-            }
-        }
-
-        return out;
     }
 
     // Pull all available frames from the sink into a flat byte vector
@@ -298,8 +265,11 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
                                          avErr(ret));
             }
 
-            auto chunk = fromFLTP(outFrame);
-            result.insert(result.end(), chunk.begin(), chunk.end());
+            size_t chunkBytes =
+                static_cast<size_t>(outFrame->nb_samples) *
+                outFrame->ch_layout.nb_channels * (bitDepth_ / 8);
+            result.insert(result.end(), outFrame->data[0],
+                          outFrame->data[0] + chunkBytes);
             av_frame_unref(outFrame);
         }
 
@@ -329,7 +299,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         }
 
         try {
-            AVFrame *frame = toFLTP(input.Data(), input.ByteLength());
+            AVFrame *frame = makeIntFrame(input.Data(), input.ByteLength());
             int ret = av_buffersrc_add_frame_flags(srcCtx_, frame,
                                                    AV_BUFFERSRC_FLAG_PUSH);
             av_frame_free(&frame);
