@@ -51,9 +51,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
         bitDepth_ = opts.Get("bitDepth").As<Napi::Number>().Int32Value();
         inputLayout_ = opts.Get("inputLayout").As<Napi::String>().Utf8Value();
         outputLayout_ = opts.Get("outputLayout").As<Napi::String>().Utf8Value();
-        winSize_ = (opts.Has("winSize") && !opts.Get("winSize").IsUndefined())
-                       ? opts.Get("winSize").As<Napi::Number>().Int32Value()
-                       : 4096;
+        winSize_ = opts.Get("winSize").As<Napi::Number>().Int32Value();
 
         if (bitDepth_ != 16 && bitDepth_ != 32) {
             Napi::RangeError::New(env, "bitDepth must be 16 or 32")

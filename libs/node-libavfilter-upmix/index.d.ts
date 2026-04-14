@@ -3,7 +3,7 @@ export interface UpmixOptions {
 	bitDepth: 16 | 32
 	inputLayout: string
 	outputLayout: 'stereo' | '5.1' | '7.1'
-	winSize?: number
+	winSize: number
 }
 
 export declare class Upmix {
