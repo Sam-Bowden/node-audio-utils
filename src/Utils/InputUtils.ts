@@ -53,12 +53,13 @@ export class InputUtils implements AudioUtils {
 		this.processingStats = new ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
 
 		if (inputParams.upmixOptions !== undefined) {
-			type UpmixCtor = new (options: {sampleRate: number; bitDepth: 16 | 32; inputLayout: string; outputLayout: string; winSize?: number}) => UpmixInstance;
+			type UpmixCtor = new (options: {sampleRate: number; bitDepth: 16 | 32; inputChannels: number; inputLayout: string; outputLayout: string; winSize?: number}) => UpmixInstance;
 			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			const upmixModule = require('node-libavfilter-upmix') as {Upmix: UpmixCtor};
 			this.upmix = new upmixModule.Upmix({
 				sampleRate: inputParams.sampleRate,
 				bitDepth: inputParams.bitDepth as 16 | 32,
+				inputChannels: inputParams.channels,
 				inputLayout: channelCountToLayout(inputParams.channels),
 				outputLayout: inputParams.upmixOptions.outputLayout,
 				winSize: inputParams.upmixOptions.winSize,
@@ -235,28 +236,17 @@ export class InputUtils implements AudioUtils {
 
 function channelCountToLayout(channels: number): string {
 	switch (channels) {
-		case 1: return 'mono';
 		case 2: return 'stereo';
-		case 4: return 'quad';
-		case 5: return '5.0';
 		case 6: return '5.1';
-		case 7: return '6.1';
 		case 8: return '7.1';
-		default: return `${channels}c`;
+		default: throw new Error(`Unsupported input channel count for upmix: ${channels}`);
 	}
 }
 
 function layoutToChannelCount(layout: string): number {
 	switch (layout) {
-		case 'mono': return 1;
 		case 'stereo': return 2;
-		case '2.1':
-		case '3.0': return 3;
-		case 'quad':
-		case '4.0': return 4;
-		case '5.0': return 5;
 		case '5.1': return 6;
-		case '6.1': return 7;
 		case '7.1': return 8;
 		default: throw new Error(`Unknown channel layout: '${layout}'`);
 	}

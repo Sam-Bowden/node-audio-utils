@@ -49,6 +49,7 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
 
         sampleRate_ = opts.Get("sampleRate").As<Napi::Number>().Int32Value();
         bitDepth_ = opts.Get("bitDepth").As<Napi::Number>().Int32Value();
+        inChannels_ = opts.Get("inputChannels").As<Napi::Number>().Int32Value();
         inputLayout_ = opts.Get("inputLayout").As<Napi::String>().Utf8Value();
         outputLayout_ = opts.Get("outputLayout").As<Napi::String>().Utf8Value();
         winSize_ = opts.Get("winSize").As<Napi::Number>().Int32Value();
@@ -95,23 +96,6 @@ class Upmix : public Napi::ObjectWrap<Upmix> {
     void buildGraph(const std::string &inputLayout,
                     const std::string &outputLayout, int winSize) {
         int ret;
-
-        // Parse input layout to get channel count
-        AVChannelLayout inLayout = {};
-        ret = av_channel_layout_from_string(&inLayout, inputLayout.c_str());
-        if (ret < 0)
-            throw std::runtime_error("Invalid inputLayout '" + inputLayout +
-                                     "': " + avErr(ret));
-        inChannels_ = inLayout.nb_channels;
-        av_channel_layout_uninit(&inLayout);
-
-        // Validate output layout
-        AVChannelLayout outLayout = {};
-        ret = av_channel_layout_from_string(&outLayout, outputLayout.c_str());
-        if (ret < 0)
-            throw std::runtime_error("Invalid outputLayout '" + outputLayout +
-                                     "': " + avErr(ret));
-        av_channel_layout_uninit(&outLayout);
 
         graph_ = avfilter_graph_alloc();
         if (graph_ == nullptr)
