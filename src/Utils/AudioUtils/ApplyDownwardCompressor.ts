@@ -1,7 +1,7 @@
 import {type InputParams, type MixerParams} from '../../Types/ParamTypes';
 import {type ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
-import {type DownwardCompressorState} from '../State';
+import {type DownwardCompressorState} from '../State/DownwardCompressorState';
 
 import {isLittleEndian} from '../General/IsLittleEndian';
 import {getMethodName} from '../General/GetMethodName';

@@ -1,6 +1,6 @@
 import {type InputParams} from '../../Types/ParamTypes';
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
-import type {UpmixState} from '../State';
+import type {UpmixState} from '../State/UpmixState';
 
 export function applyUpmix(
 	audioData: ModifiedDataView,

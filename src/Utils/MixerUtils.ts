@@ -1,6 +1,7 @@
 import {type AudioUtils} from '../Types/AudioUtils';
 import {type MixerParams} from '../Types/ParamTypes';
-import {type DownwardCompressorState, type GateState} from './State';
+import {type DownwardCompressorState} from './State/DownwardCompressorState';
+import {type GateState} from './State/GateState';
 
 import {changeVolume} from './AudioUtils/СhangeVolume';
 import {applyGate} from './AudioUtils/ApplyGate';

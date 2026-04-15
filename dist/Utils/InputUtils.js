@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InputUtils = void 0;
-const State_1 = require("./State");
+const UpmixState_1 = require("./State/UpmixState");
 const ModifiedDataView_1 = require("../ModifiedDataView/ModifiedDataView");
 const AssertChannelsCount_1 = require("../Asserts/AssertChannelsCount");
 const _hangeVolume_1 = require("./AudioUtils/\u0421hangeVolume");
@@ -28,7 +28,7 @@ class InputUtils {
         this.downwardCompressorState = { ratio: 1 };
         this.processingStats = new ProcessingStats_1.ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
         if (inputParams.upmixOptions !== undefined) {
-            this.upmixState = new State_1.UpmixState(inputParams.upmixOptions, inputParams.channels, inputParams.sampleRate, inputParams.bitDepth);
+            this.upmixState = new UpmixState_1.UpmixState(inputParams.upmixOptions, inputParams.channels, inputParams.sampleRate, inputParams.bitDepth);
         }
     }
     setAudioData(audioData) {

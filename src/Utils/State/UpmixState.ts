@@ -1,14 +1,5 @@
 import type {Upmix as UpmixInstance} from 'node-libavfilter-upmix';
-import {type UpmixOptions} from '../Types/ParamTypes';
-
-export type GateState = {
-	holdSamplesRemaining?: number;
-	attenuation: number;
-};
-
-export type DownwardCompressorState = {
-	ratio: number;
-};
+import {type UpmixOptions} from '../../Types/ParamTypes';
 
 export class UpmixState {
 	public readonly upmix: UpmixInstance;

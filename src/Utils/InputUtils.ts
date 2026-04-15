@@ -1,6 +1,8 @@
 import {type AudioUtils} from '../Types/AudioUtils';
 import {type InputParams, type MixerParams} from '../Types/ParamTypes';
-import {type DownwardCompressorState, type GateState, UpmixState} from './State';
+import {type DownwardCompressorState} from './State/DownwardCompressorState';
+import {type GateState} from './State/GateState';
+import {UpmixState} from './State/UpmixState';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 
