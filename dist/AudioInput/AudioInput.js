@@ -30,7 +30,7 @@ class AudioInput extends stream_1.Writable {
     }
     clear() {
         this.audioData = new Uint8Array(0);
-        this.audioUtils.resetUpmix();
+        this.audioUtils.clear();
     }
     _write(chunk, _, callback) {
         let processedLength = 0;
@@ -60,7 +60,7 @@ class AudioInput extends stream_1.Writable {
     _destroy(error, callback) {
         this.audioUtils.destroy();
         if (!this.closed) {
-            if ((this.audioData.length === 0 && this.correctionBuffer.length === 0)) {
+            if (this.audioData.length === 0 && this.correctionBuffer.length === 0) {
                 this.removeInputSelf();
                 return;
             }
@@ -72,8 +72,7 @@ class AudioInput extends stream_1.Writable {
     }
     getData(size) {
         const zeroSample = (0, GetZeroSample_1.getZeroSample)(this.inputParams.bitDepth, this.inputParams.unsigned);
-        const tempChunk = new Uint8Array(size)
-            .fill(zeroSample);
+        const tempChunk = new Uint8Array(size).fill(zeroSample);
         if ((this.audioData.length < size && this.closed) || this.audioData.length >= size) {
             tempChunk.set(this.audioData.slice(0, size));
             this.audioData = this.audioData.slice(size);
@@ -90,8 +89,7 @@ class AudioInput extends stream_1.Writable {
         if (this.correctionBuffer.length > 0) {
             const zeroSample = (0, GetZeroSample_1.getZeroSample)(this.inputParams.bitDepth, this.inputParams.unsigned);
             const newSize = chunk.length + this.correctionBuffer.length;
-            const tempChunk = new Uint8Array(newSize)
-                .fill(zeroSample);
+            const tempChunk = new Uint8Array(newSize).fill(zeroSample);
             tempChunk.set(this.correctionBuffer, 0);
             tempChunk.set(chunk, this.correctionBuffer.length);
             chunk = tempChunk;
@@ -109,7 +107,8 @@ class AudioInput extends stream_1.Writable {
         return correctedChunk;
     }
     processData(chunk) {
-        return this.audioUtils.setAudioData(chunk)
+        return this.audioUtils
+            .setAudioData(chunk)
             .checkBitDepth()
             .checkSampleRate()
             .checkActiveChannelsCount()

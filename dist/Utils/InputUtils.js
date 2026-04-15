@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InputUtils = void 0;
+const State_1 = require("./State");
 const ModifiedDataView_1 = require("../ModifiedDataView/ModifiedDataView");
 const AssertChannelsCount_1 = require("../Asserts/AssertChannelsCount");
 const _hangeVolume_1 = require("./AudioUtils/\u0421hangeVolume");
@@ -12,13 +13,13 @@ const ChangeEndianness_1 = require("./AudioUtils/ChangeEndianness");
 const ApplyGate_1 = require("./AudioUtils/ApplyGate");
 const ApplyDownwardCompressor_1 = require("./AudioUtils/ApplyDownwardCompressor");
 const ApplyDownmix_1 = require("./AudioUtils/ApplyDownmix");
+const ApplyUpmix_1 = require("./AudioUtils/ApplyUpmix");
 const StripChannels_1 = require("./AudioUtils/StripChannels");
 const ProcessingStats_1 = require("./Stats/ProcessingStats");
 const UpdateStats_1 = require("./AudioUtils/UpdateStats");
 class InputUtils {
     constructor(inputParams, mixerParams) {
         this.emptyData = new Uint8Array(0);
-        this.upmixOutputBuffer = new Uint8Array(0);
         this.audioInputParams = inputParams;
         this.audioMixerParams = mixerParams;
         this.changedParams = { ...this.audioInputParams };
@@ -27,17 +28,7 @@ class InputUtils {
         this.downwardCompressorState = { ratio: 1 };
         this.processingStats = new ProcessingStats_1.ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
         if (inputParams.upmixOptions !== undefined) {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const upmixModule = require('node-libavfilter-upmix');
-            this.upmix = new upmixModule.Upmix({
-                sampleRate: inputParams.sampleRate,
-                bitDepth: inputParams.bitDepth,
-                inputChannels: inputParams.channels,
-                inputLayout: channelCountToLayout(inputParams.channels),
-                outputLayout: inputParams.upmixOptions.outputLayout,
-                winSize: inputParams.upmixOptions.winSize,
-            });
-            this.upmixOutputChannels = layoutToChannelCount(inputParams.upmixOptions.outputLayout);
+            this.upmixState = new State_1.UpmixState(inputParams.upmixOptions, inputParams.channels, inputParams.sampleRate, inputParams.bitDepth);
         }
     }
     setAudioData(audioData) {
@@ -71,35 +62,20 @@ class InputUtils {
         return this;
     }
     applyUpmix() {
-        if (this.upmix === undefined) {
-            return this;
+        if (this.upmixState !== undefined) {
+            const result = (0, ApplyUpmix_1.applyUpmix)(this.audioData, this.changedParams, this.upmixState);
+            if (result !== undefined) {
+                this.audioData = result.data;
+                this.changedParams.channels = result.channels;
+            }
         }
-        const bytesPerSample = this.changedParams.bitDepth / 8;
-        const inputSamples = this.audioData.byteLength / (bytesPerSample * this.changedParams.channels);
-        const expectedOutputBytes = inputSamples * this.upmixOutputChannels * bytesPerSample;
-        const input = Buffer.from(this.audioData.buffer, this.audioData.byteOffset, this.audioData.byteLength);
-        const output = this.upmix.process(input);
-        if (output.length > 0) {
-            const combined = new Uint8Array(this.upmixOutputBuffer.length + output.length);
-            combined.set(this.upmixOutputBuffer);
-            combined.set(new Uint8Array(output.buffer, output.byteOffset, output.byteLength), this.upmixOutputBuffer.length);
-            this.upmixOutputBuffer = combined;
-        }
-        if (this.upmixOutputBuffer.length >= expectedOutputBytes) {
-            const released = this.upmixOutputBuffer.slice(0, expectedOutputBytes);
-            this.upmixOutputBuffer = this.upmixOutputBuffer.slice(expectedOutputBytes);
-            this.audioData = new ModifiedDataView_1.ModifiedDataView(released.buffer, released.byteOffset, released.byteLength);
-            this.changedParams.channels = this.upmixOutputChannels;
-        }
-        // If not enough output accumulated, fall through — checkChannelsCount() zero-pads as fallback
         return this;
     }
     destroy() {
-        this.upmix?.close();
+        this.upmixState?.destroy();
     }
-    resetUpmix() {
-        this.upmix?.reset();
-        this.upmixOutputBuffer = new Uint8Array(0);
+    clear() {
+        this.upmixState?.clear();
     }
     checkActiveChannelsCount() {
         const { activeChannels } = this.changedParams;
@@ -157,19 +133,3 @@ class InputUtils {
     }
 }
 exports.InputUtils = InputUtils;
-function channelCountToLayout(channels) {
-    switch (channels) {
-        case 2: return 'stereo';
-        case 6: return '5.1';
-        case 8: return '7.1';
-        default: throw new Error(`Unsupported input channel count for upmix: ${channels}`);
-    }
-}
-function layoutToChannelCount(layout) {
-    switch (layout) {
-        case 'stereo': return 2;
-        case '5.1': return 6;
-        case '7.1': return 8;
-        default: throw new Error(`Unknown channel layout: '${layout}'`);
-    }
-}
