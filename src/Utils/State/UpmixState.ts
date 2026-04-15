@@ -4,6 +4,7 @@ import {type UpmixOptions} from '../../Types/ParamTypes';
 export class UpmixState {
 	public readonly upmix: UpmixInstance;
 	public readonly outputChannels: number;
+	public readonly bitDepth: 16 | 32;
 	public outputBuffer: Uint8Array = new Uint8Array(0);
 
 	public constructor(options: UpmixOptions, inputChannels: number, sampleRate: number, bitDepth: 16 | 32) {
@@ -26,6 +27,7 @@ export class UpmixState {
 			winSize: options.winSize,
 		});
 		this.outputChannels = layoutToChannelCount(options.outputLayout);
+		this.bitDepth = bitDepth;
 	}
 
 	public destroy(): void {

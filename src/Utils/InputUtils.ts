@@ -55,8 +55,8 @@ export class InputUtils implements AudioUtils {
 			this.upmixState = new UpmixState(
 				inputParams.upmixOptions,
 				inputParams.channels,
-				inputParams.sampleRate,
-				inputParams.bitDepth as 16 | 32,
+				mixerParams.sampleRate,
+				mixerParams.bitDepth > 16 ? 32 : 16,
 			);
 		}
 	}
@@ -105,8 +105,7 @@ export class InputUtils implements AudioUtils {
 		if (this.upmixState !== undefined) {
 			const result = applyUpmix(this.audioData, this.changedParams, this.upmixState);
 			if (result !== undefined) {
-				this.audioData = result.data;
-				this.changedParams.channels = result.channels;
+				this.audioData = result;
 			}
 		}
 
@@ -170,12 +169,7 @@ export class InputUtils implements AudioUtils {
 
 	public applyGate(): this {
 		if (this.changedParams.gateThreshold !== undefined) {
-			applyGate(
-				this.audioData,
-				this.changedParams,
-				this.gateState,
-				this.processingStats.postGate,
-			);
+			applyGate(this.audioData, this.changedParams, this.gateState, this.processingStats.postGate);
 		}
 
 		return this;
@@ -206,4 +200,3 @@ export class InputUtils implements AudioUtils {
 		return new Uint8Array(this.audioData.buffer, this.audioData.byteOffset, this.audioData.byteLength);
 	}
 }
-

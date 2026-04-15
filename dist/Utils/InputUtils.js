@@ -28,7 +28,7 @@ class InputUtils {
         this.downwardCompressorState = { ratio: 1 };
         this.processingStats = new ProcessingStats_1.ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
         if (inputParams.upmixOptions !== undefined) {
-            this.upmixState = new UpmixState_1.UpmixState(inputParams.upmixOptions, inputParams.channels, inputParams.sampleRate, inputParams.bitDepth);
+            this.upmixState = new UpmixState_1.UpmixState(inputParams.upmixOptions, inputParams.channels, mixerParams.sampleRate, mixerParams.bitDepth > 16 ? 32 : 16);
         }
     }
     setAudioData(audioData) {
@@ -65,8 +65,7 @@ class InputUtils {
         if (this.upmixState !== undefined) {
             const result = (0, ApplyUpmix_1.applyUpmix)(this.audioData, this.changedParams, this.upmixState);
             if (result !== undefined) {
-                this.audioData = result.data;
-                this.changedParams.channels = result.channels;
+                this.audioData = result;
             }
         }
         return this;

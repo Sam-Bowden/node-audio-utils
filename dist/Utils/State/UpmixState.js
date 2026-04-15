@@ -15,6 +15,7 @@ class UpmixState {
             winSize: options.winSize,
         });
         this.outputChannels = layoutToChannelCount(options.outputLayout);
+        this.bitDepth = bitDepth;
     }
     destroy() {
         this.upmix.close();

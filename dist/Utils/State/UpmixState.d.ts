@@ -3,6 +3,7 @@ import { type UpmixOptions } from '../../Types/ParamTypes';
 export declare class UpmixState {
     readonly upmix: UpmixInstance;
     readonly outputChannels: number;
+    readonly bitDepth: 16 | 32;
     outputBuffer: Uint8Array;
     constructor(options: UpmixOptions, inputChannels: number, sampleRate: number, bitDepth: 16 | 32);
     destroy(): void;
