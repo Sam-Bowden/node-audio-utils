@@ -1,0 +1,3 @@
+[submodule "libs/node-libavfilter-upmix"]
+	path = libs/node-libavfilter-upmix
+	url = https://github.com/Sam-Bowden/node-libavfilter-upmix.git
