@@ -167,6 +167,8 @@ export class AudioInput extends Writable {
 		return this.audioUtils.setAudioData(chunk)
 			.checkBitDepth()
 			.checkSampleRate()
+			.checkActiveChannelsCount()
+			.applyDownmix()
 			.checkChannelsCount()
 			.checkIntType()
 			.checkEndianness()

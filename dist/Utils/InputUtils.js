@@ -11,6 +11,8 @@ const _hangeChannelsCount_1 = require("./AudioUtils/\u0421hangeChannelsCount");
 const ChangeEndianness_1 = require("./AudioUtils/ChangeEndianness");
 const ApplyGate_1 = require("./AudioUtils/ApplyGate");
 const ApplyDownwardCompressor_1 = require("./AudioUtils/ApplyDownwardCompressor");
+const ApplyDownmix_1 = require("./AudioUtils/ApplyDownmix");
+const StripChannels_1 = require("./AudioUtils/StripChannels");
 const ProcessingStats_1 = require("./Stats/ProcessingStats");
 const UpdateStats_1 = require("./AudioUtils/UpdateStats");
 class InputUtils {
@@ -44,6 +46,21 @@ class InputUtils {
     checkSampleRate() {
         if (this.changedParams.sampleRate !== this.audioMixerParams.sampleRate) {
             this.audioData = (0, _hangeSampleRate_1.changeSampleRate)(this.audioData, this.changedParams, this.audioMixerParams);
+        }
+        return this;
+    }
+    applyDownmix() {
+        if (this.changedParams.downmixMatrix !== undefined) {
+            this.audioData = (0, ApplyDownmix_1.applyDownmix)(this.audioData, this.changedParams);
+            this.changedParams.channels = this.changedParams.downmixMatrix.length;
+        }
+        return this;
+    }
+    checkActiveChannelsCount() {
+        const { activeChannels } = this.changedParams;
+        if (activeChannels !== undefined && activeChannels < this.changedParams.channels) {
+            this.audioData = (0, StripChannels_1.stripChannels)(this.audioData, this.changedParams);
+            this.changedParams.channels = activeChannels;
         }
         return this;
     }
