@@ -10,12 +10,17 @@ export declare class InputUtils implements AudioUtils {
     private audioData;
     private readonly gateState;
     private readonly downwardCompressorState;
+    private upmixState?;
     constructor(inputParams: InputParams, mixerParams: MixerParams);
     setAudioData(audioData: Uint8Array): this;
     checkIntType(): this;
     checkBitDepth(): this;
     checkSampleRate(): this;
     applyDownmix(): this;
+    applyUpmix(): this;
+    resetUpmixState(): void;
+    destroy(): void;
+    clear(): void;
     checkActiveChannelsCount(): this;
     checkChannelsCount(): this;
     checkPreProcessVolume(): this;

@@ -49,8 +49,13 @@ export class AudioInput extends Writable {
 		return this.closed ? (this.mixerParams.highWaterMark ?? this.audioData.length) : this.audioData.length;
 	}
 
+	public resetUpmixState(): void {
+		this.audioUtils.resetUpmixState();
+	}
+
 	public clear(): void {
 		this.audioData = new Uint8Array(0);
+		this.audioUtils.clear();
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): number {
@@ -91,8 +96,10 @@ export class AudioInput extends Writable {
 	}
 
 	public _destroy(error: Error, callback: (error?: Error) => void): void {
+		this.audioUtils.destroy();
+
 		if (!this.closed) {
-			if ((this.audioData.length === 0 && this.correctionBuffer.length === 0)) {
+			if (this.audioData.length === 0 && this.correctionBuffer.length === 0) {
 				this.removeInputSelf();
 
 				return;
@@ -109,8 +116,7 @@ export class AudioInput extends Writable {
 	public getData(size: number): Uint8Array {
 		const zeroSample = getZeroSample(this.inputParams.bitDepth, this.inputParams.unsigned);
 
-		const tempChunk = new Uint8Array(size)
-			.fill(zeroSample);
+		const tempChunk = new Uint8Array(size).fill(zeroSample);
 
 		if ((this.audioData.length < size && this.closed) || this.audioData.length >= size) {
 			tempChunk.set(this.audioData.slice(0, size));
@@ -134,8 +140,7 @@ export class AudioInput extends Writable {
 			const zeroSample = getZeroSample(this.inputParams.bitDepth, this.inputParams.unsigned);
 			const newSize = chunk.length + this.correctionBuffer.length;
 
-			const tempChunk = new Uint8Array(newSize)
-				.fill(zeroSample);
+			const tempChunk = new Uint8Array(newSize).fill(zeroSample);
 
 			tempChunk.set(this.correctionBuffer, 0);
 			tempChunk.set(chunk, this.correctionBuffer.length);
@@ -164,11 +169,13 @@ export class AudioInput extends Writable {
 	}
 
 	private processData(chunk: Uint8Array): Uint8Array {
-		return this.audioUtils.setAudioData(chunk)
-			.checkBitDepth()
-			.checkSampleRate()
+		return this.audioUtils
+			.setAudioData(chunk)
 			.checkActiveChannelsCount()
 			.applyDownmix()
+			.applyUpmix()
+			.checkBitDepth()
+			.checkSampleRate()
 			.checkChannelsCount()
 			.checkIntType()
 			.checkEndianness()

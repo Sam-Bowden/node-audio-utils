@@ -14,6 +14,7 @@ export declare class AudioInput extends Writable {
     set params(params: OmitSomeParams<InputParams>);
     get processingStats(): ProcessingStats;
     get dataSize(): number;
+    resetUpmixState(): void;
     clear(): void;
     _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): number;
     _destroy(error: Error, callback: (error?: Error) => void): void;

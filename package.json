@@ -25,6 +25,9 @@
   ],
   "authors": ["Alex Pl (https://github.com/AlexPl3331)", "Sam Bowden (https://github.com/Sam-Bowden)"],
   "license": "MIT",
+  "dependencies": {
+    "node-libavfilter-upmix": "file:libs/node-libavfilter-upmix"
+  },
   "devDependencies": {
     "@types/node": "^22.5.4",
     "@typescript-eslint/eslint-plugin": "^8.5.0",

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InputUtils = void 0;
+const UpmixState_1 = require("./State/UpmixState");
 const ModifiedDataView_1 = require("../ModifiedDataView/ModifiedDataView");
 const AssertChannelsCount_1 = require("../Asserts/AssertChannelsCount");
 const _hangeVolume_1 = require("./AudioUtils/\u0421hangeVolume");
@@ -12,6 +13,7 @@ const ChangeEndianness_1 = require("./AudioUtils/ChangeEndianness");
 const ApplyGate_1 = require("./AudioUtils/ApplyGate");
 const ApplyDownwardCompressor_1 = require("./AudioUtils/ApplyDownwardCompressor");
 const ApplyDownmix_1 = require("./AudioUtils/ApplyDownmix");
+const ApplyUpmix_1 = require("./AudioUtils/ApplyUpmix");
 const StripChannels_1 = require("./AudioUtils/StripChannels");
 const ProcessingStats_1 = require("./Stats/ProcessingStats");
 const UpdateStats_1 = require("./AudioUtils/UpdateStats");
@@ -55,6 +57,28 @@ class InputUtils {
             this.changedParams.channels = this.changedParams.downmixMatrix.length;
         }
         return this;
+    }
+    applyUpmix() {
+        if (this.changedParams.upmixOptions !== undefined) {
+            if (this.upmixState === undefined) {
+                this.upmixState = new UpmixState_1.UpmixState(this.changedParams.upmixOptions, this.changedParams.channels, this.changedParams.sampleRate, this.changedParams.bitDepth > 16 ? 32 : 16);
+            }
+            const result = (0, ApplyUpmix_1.applyUpmix)(this.audioData, this.changedParams, this.upmixState);
+            if (result !== undefined) {
+                this.audioData = result;
+            }
+        }
+        return this;
+    }
+    resetUpmixState() {
+        this.upmixState?.destroy();
+        this.upmixState = undefined;
+    }
+    destroy() {
+        this.upmixState?.destroy();
+    }
+    clear() {
+        this.upmixState?.clear();
     }
     checkActiveChannelsCount() {
         const { activeChannels } = this.changedParams;
