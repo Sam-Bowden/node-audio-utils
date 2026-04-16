@@ -112,6 +112,11 @@ export class InputUtils implements AudioUtils {
 		return this;
 	}
 
+	public resetUpmixState(): void {
+		this.upmixState?.destroy();
+		this.upmixState = undefined;
+	}
+
 	public destroy(): void {
 		this.upmixState?.destroy();
 	}

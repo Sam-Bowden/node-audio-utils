@@ -70,6 +70,10 @@ class InputUtils {
         }
         return this;
     }
+    resetUpmixState() {
+        this.upmixState?.destroy();
+        this.upmixState = undefined;
+    }
     destroy() {
         this.upmixState?.destroy();
     }

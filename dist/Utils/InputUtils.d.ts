@@ -18,6 +18,7 @@ export declare class InputUtils implements AudioUtils {
     checkSampleRate(): this;
     applyDownmix(): this;
     applyUpmix(): this;
+    resetUpmixState(): void;
     destroy(): void;
     clear(): void;
     checkActiveChannelsCount(): this;

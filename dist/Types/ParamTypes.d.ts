@@ -26,7 +26,7 @@ export type InterleaverParams = {
 } & BasedParams;
 export type UpmixOptions = {
     outputLayout: 'stereo' | '5.1' | '7.1';
-    winSize: number;
+    windowSize: number;
 };
 export type InputParams = {
     correctByteSize?: boolean;

@@ -28,6 +28,9 @@ class AudioInput extends stream_1.Writable {
     get dataSize() {
         return this.closed ? (this.mixerParams.highWaterMark ?? this.audioData.length) : this.audioData.length;
     }
+    resetUpmixState() {
+        this.audioUtils.resetUpmixState();
+    }
     clear() {
         this.audioData = new Uint8Array(0);
         this.audioUtils.clear();

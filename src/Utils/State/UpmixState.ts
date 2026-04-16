@@ -24,7 +24,7 @@ export class UpmixState {
 			inputChannels,
 			inputLayout: channelCountToLayout(inputChannels),
 			outputLayout: options.outputLayout,
-			winSize: options.winSize,
+			winSize: options.windowSize,
 		});
 		this.outputChannels = layoutToChannelCount(options.outputLayout);
 		this.bitDepth = bitDepth;

@@ -49,6 +49,10 @@ export class AudioInput extends Writable {
 		return this.closed ? (this.mixerParams.highWaterMark ?? this.audioData.length) : this.audioData.length;
 	}
 
+	public resetUpmixState(): void {
+		this.audioUtils.resetUpmixState();
+	}
+
 	public clear(): void {
 		this.audioData = new Uint8Array(0);
 		this.audioUtils.clear();
