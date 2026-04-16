@@ -35,7 +35,7 @@ export class InputUtils implements AudioUtils {
 
 	private readonly gateState: GateState;
 	private readonly downwardCompressorState: DownwardCompressorState;
-	private readonly upmixState?: UpmixState;
+	private upmixState?: UpmixState;
 
 	constructor(inputParams: InputParams, mixerParams: MixerParams) {
 		this.audioInputParams = inputParams;
@@ -50,15 +50,6 @@ export class InputUtils implements AudioUtils {
 		this.downwardCompressorState = {ratio: 1};
 
 		this.processingStats = new ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
-
-		if (inputParams.upmixOptions !== undefined) {
-			this.upmixState = new UpmixState(
-				inputParams.upmixOptions,
-				inputParams.channels,
-				inputParams.sampleRate,
-				mixerParams.bitDepth > 16 ? 32 : 16,
-			);
-		}
 	}
 
 	public setAudioData(audioData: Uint8Array): this {
@@ -102,7 +93,16 @@ export class InputUtils implements AudioUtils {
 	}
 
 	public applyUpmix(): this {
-		if (this.upmixState !== undefined) {
+		if (this.changedParams.upmixOptions !== undefined) {
+			if (this.upmixState === undefined) {
+				this.upmixState = new UpmixState(
+					this.changedParams.upmixOptions,
+					this.changedParams.channels,
+					this.changedParams.sampleRate,
+					this.changedParams.bitDepth > 16 ? 32 : 16,
+				);
+			}
+
 			const result = applyUpmix(this.audioData, this.changedParams, this.upmixState);
 			if (result !== undefined) {
 				this.audioData = result;
