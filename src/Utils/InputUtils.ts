@@ -55,7 +55,7 @@ export class InputUtils implements AudioUtils {
 			this.upmixState = new UpmixState(
 				inputParams.upmixOptions,
 				inputParams.channels,
-				mixerParams.sampleRate,
+				inputParams.sampleRate,
 				mixerParams.bitDepth > 16 ? 32 : 16,
 			);
 		}

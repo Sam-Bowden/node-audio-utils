@@ -109,11 +109,11 @@ class AudioInput extends stream_1.Writable {
     processData(chunk) {
         return this.audioUtils
             .setAudioData(chunk)
-            .checkBitDepth()
-            .checkSampleRate()
             .checkActiveChannelsCount()
             .applyDownmix()
             .applyUpmix()
+            .checkBitDepth()
+            .checkSampleRate()
             .checkChannelsCount()
             .checkIntType()
             .checkEndianness()

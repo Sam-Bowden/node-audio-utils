@@ -167,11 +167,11 @@ export class AudioInput extends Writable {
 	private processData(chunk: Uint8Array): Uint8Array {
 		return this.audioUtils
 			.setAudioData(chunk)
-			.checkBitDepth()
-			.checkSampleRate()
 			.checkActiveChannelsCount()
 			.applyDownmix()
 			.applyUpmix()
+			.checkBitDepth()
+			.checkSampleRate()
 			.checkChannelsCount()
 			.checkIntType()
 			.checkEndianness()

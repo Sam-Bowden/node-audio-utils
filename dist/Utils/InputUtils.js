@@ -28,7 +28,7 @@ class InputUtils {
         this.downwardCompressorState = { ratio: 1 };
         this.processingStats = new ProcessingStats_1.ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
         if (inputParams.upmixOptions !== undefined) {
-            this.upmixState = new UpmixState_1.UpmixState(inputParams.upmixOptions, inputParams.channels, mixerParams.sampleRate, mixerParams.bitDepth > 16 ? 32 : 16);
+            this.upmixState = new UpmixState_1.UpmixState(inputParams.upmixOptions, inputParams.channels, inputParams.sampleRate, mixerParams.bitDepth > 16 ? 32 : 16);
         }
     }
     setAudioData(audioData) {

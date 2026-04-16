@@ -31,21 +31,9 @@ function applyUpmix(audioData, params, upmixState) {
     if (upmixState.outputBuffer.length >= expectedOutputBytes) {
         const released = upmixState.outputBuffer.slice(0, expectedOutputBytes);
         upmixState.outputBuffer = upmixState.outputBuffer.slice(expectedOutputBytes);
-        let resultData = new ModifiedDataView_1.ModifiedDataView(released.buffer, released.byteOffset, released.byteLength);
+        const resultData = new ModifiedDataView_1.ModifiedDataView(released.buffer, released.byteOffset, released.byteLength);
         if (needsConversion) {
-            resultData = (0, ChangeBitDepth_1.changeBitDepth)(resultData, {
-                sampleRate: params.sampleRate,
-                channels: upmixState.outputChannels,
-                bitDepth: upmixBitDepth,
-                unsigned: false,
-                endianness: params.endianness,
-            }, {
-                sampleRate: params.sampleRate,
-                channels: upmixState.outputChannels,
-                bitDepth: originalBitDepth,
-                unsigned: params.unsigned,
-                endianness: params.endianness,
-            });
+            params.bitDepth = upmixBitDepth;
         }
         params.channels = upmixState.outputChannels;
         return resultData;
