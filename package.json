@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && eslint && tsc"
+    "build": "eslint && tsc"
   },
   "engines": {
     "node": ">=18.0.0"
