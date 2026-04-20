@@ -78,7 +78,7 @@ checksum = "f678cf4a922c215c63e0de95eb1ff08a958a81d47e485cf9da1e27bf6305cfa5"
 [[package]]
 name = "ebur128"
 version = "0.1.10"
-source = "git+ssh://git@github.com/DanielHarris01/ebur128?rev=dbf0c8887e80329aad59c32fe563477cc3514424#dbf0c8887e80329aad59c32fe563477cc3514424"
+source = "git+https://github.com/DanielHarris01/ebur128?rev=dbf0c8887e80329aad59c32fe563477cc3514424#dbf0c8887e80329aad59c32fe563477cc3514424"
 dependencies = [
  "bitflags 1.3.2",
  "dasp_frame",
