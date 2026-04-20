@@ -28,9 +28,6 @@
   ],
   "authors": ["Alex Pl (https://github.com/AlexPl3331)", "Sam Bowden (https://github.com/Sam-Bowden)"],
   "license": "MIT",
-  "dependencies": {
-    "@napi-rs/cli": "^3.5.1"
-  },
   "devDependencies": {
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
@@ -43,7 +40,8 @@
     "globals": "^15.9.0",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@napi-rs/cli": "^3.5.1"
   },
 	"exports": {
 		".": {
