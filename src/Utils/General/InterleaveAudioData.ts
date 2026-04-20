@@ -1,27 +1,41 @@
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
-import {type InputParams, type InterleaverParams} from '../../Types/ParamTypes';
+import {type InterleaverParams} from '../../Types/ParamTypes';
 
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from './IsLittleEndian';
 import {getMethodName} from './GetMethodName';
 
-export function interleaveAudioData(audioData: ModifiedDataView[], params: InputParams | InterleaverParams): ModifiedDataView {
+export function interleaveAudioData(audioData: ModifiedDataView[], params: InterleaverParams): ModifiedDataView {
 	const bytesPerElement = params.bitDepth / 8;
 
-	const isLe = isLittleEndian(params.endianness);
+	const bytesPerChannel = params.highWaterMark ?? bytesPerElement;
 
-	const newData = new Uint8Array(audioData[0].byteLength * audioData.length);
-	const interleavedData = new ModifiedDataView(newData.buffer);
+	const isLe = isLittleEndian(params.endianness);
 
 	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(params.bitDepth, params.unsigned)}`;
 	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(params.bitDepth, params.unsigned)}`;
 
-	for (let index = 0; index < audioData[0].byteLength; index += bytesPerElement * params.channels) {
-		for (let channel = 0; channel < params.channels; channel++) {
-			for (let audioDataIndex = 0; audioDataIndex < audioData.length; audioDataIndex++) {
-				const sampleValue = audioData[audioDataIndex][getSampleMethod](index + (bytesPerElement * channel), isLe);
-				interleavedData[setSampleMethod]((index * audioData.length) + (bytesPerElement * (channel + (audioDataIndex * params.channels))), sampleValue, isLe);
+	const channelCounts = audioData.map(data => data.byteLength / bytesPerChannel);
+	const totalChannels = channelCounts.reduce((sum, n) => sum + n, 0);
+	const samplesPerChannel = bytesPerChannel / bytesPerElement;
+
+	const newData = new Uint8Array(samplesPerChannel * totalChannels * bytesPerElement);
+	const interleavedData = new ModifiedDataView(newData.buffer);
+
+	for (let sample = 0; sample < samplesPerChannel; sample++) {
+		let outputChannelOffset = 0;
+
+		for (let inputIndex = 0; inputIndex < audioData.length; inputIndex++) {
+			const channels = channelCounts[inputIndex];
+
+			for (let channel = 0; channel < channels; channel++) {
+				const inputOffset = ((sample * channels) + channel) * bytesPerElement;
+				const outputOffset = ((sample * totalChannels) + outputChannelOffset + channel) * bytesPerElement;
+				const sampleValue = audioData[inputIndex][getSampleMethod](inputOffset, isLe);
+				interleavedData[setSampleMethod](outputOffset, sampleValue, isLe);
 			}
+
+			outputChannelOffset += channels;
 		}
 	}
 
