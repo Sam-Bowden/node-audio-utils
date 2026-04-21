@@ -1,4 +1,4 @@
-import {type InputParams, type OmitSomeParams, type InterleaverParams} from '../Types/ParamTypes';
+import {type InputParams, type OmitSomeParams, type ProcessorParams} from '../Types/ParamTypes';
 
 import {Readable} from 'stream';
 
@@ -8,12 +8,12 @@ import {AudioInput} from '../AudioInput/AudioInput';
 import {InterleaverUtils} from '../Utils/InterleaverUtils';
 
 export class AudioInterleaver extends Readable {
-	private readonly interleaverParams: InterleaverParams;
+	private readonly interleaverParams: ProcessorParams;
 	private readonly audioUtils: InterleaverUtils;
 
 	private readonly inputs: AudioInput[] = [];
 
-	constructor(params: InterleaverParams) {
+	constructor(params: ProcessorParams) {
 		super();
 
 		this.interleaverParams = params;
@@ -24,11 +24,11 @@ export class AudioInterleaver extends Readable {
 		return this.inputs.length;
 	}
 
-	get params(): Readonly<InterleaverParams> {
+	get params(): Readonly<ProcessorParams> {
 		return this.interleaverParams;
 	}
 
-	set params(params: OmitSomeParams<InterleaverParams>) {
+	set params(params: OmitSomeParams<ProcessorParams>) {
 		Object.assign(this.interleaverParams, params);
 	}
 
@@ -61,7 +61,7 @@ export class AudioInterleaver extends Readable {
 	}
 
 	public createAudioInput(inputParams: InputParams, index: number): AudioInput {
-		const interleaverParams = Object.create(this.interleaverParams) as InterleaverParams;
+		const interleaverParams = Object.create(this.interleaverParams) as ProcessorParams;
 		interleaverParams.channels = inputParams.channels;
 
 		const audioInput = new AudioInput(inputParams, interleaverParams, this.removeAudioinput.bind(this));

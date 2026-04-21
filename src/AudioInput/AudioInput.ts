@@ -1,4 +1,4 @@
-import {type OmitSomeParams, type InputParams, type MixerParams} from '../Types/ParamTypes';
+import {type OmitSomeParams, type InputParams, type ProcessorParams} from '../Types/ParamTypes';
 
 import {Writable} from 'stream';
 import {endianness} from 'os';
@@ -11,7 +11,7 @@ type SelfRemoveFunction = (audioInput: AudioInput) => void;
 
 export class AudioInput extends Writable {
 	private readonly inputParams: InputParams;
-	private readonly mixerParams: MixerParams;
+	private readonly mixerParams: ProcessorParams;
 
 	private readonly selfRemoveFunction: SelfRemoveFunction | undefined;
 
@@ -20,7 +20,7 @@ export class AudioInput extends Writable {
 	private audioData: Uint8Array = new Uint8Array(0);
 	private correctionBuffer: Uint8Array = new Uint8Array(0);
 
-	constructor(inputParams: InputParams, mixerParams: MixerParams, selfRemoveFunction?: SelfRemoveFunction) {
+	constructor(inputParams: InputParams, mixerParams: ProcessorParams, selfRemoveFunction?: SelfRemoveFunction) {
 		super();
 
 		this.inputParams = inputParams;

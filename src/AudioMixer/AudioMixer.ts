@@ -1,4 +1,4 @@
-import {type MixerParams, type InputParams, type OmitSomeParams} from '../Types/ParamTypes';
+import {type ProcessorParams, type InputParams, type OmitSomeParams} from '../Types/ParamTypes';
 
 import {Readable} from 'stream';
 
@@ -9,23 +9,23 @@ import {AudioInput} from '../AudioInput/AudioInput';
 import {type ProcessingStats} from '../Utils/Stats/ProcessingStats';
 
 export class AudioMixer extends Readable {
-	private readonly mixerParams: MixerParams;
+	private readonly mixerParams: ProcessorParams;
 	private readonly audioUtils: MixerUtils;
 
 	private readonly inputs: AudioInput[] = [];
 
-	constructor(params: MixerParams) {
+	constructor(params: ProcessorParams) {
 		super();
 
 		this.mixerParams = params;
 		this.audioUtils = new MixerUtils(params);
 	}
 
-	get params(): Readonly<MixerParams> {
+	get params(): Readonly<ProcessorParams> {
 		return this.mixerParams;
 	}
 
-	set params(params: OmitSomeParams<MixerParams>) {
+	set params(params: OmitSomeParams<ProcessorParams>) {
 		Object.assign(this.mixerParams, params);
 	}
 

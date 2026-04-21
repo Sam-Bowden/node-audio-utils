@@ -1,4 +1,4 @@
-import {type InputParams, type MixerParams} from '../../Types/ParamTypes';
+import {type InputParams, type ProcessorParams} from '../../Types/ParamTypes';
 import {type ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 import {type DownwardCompressorState} from '../State/DownwardCompressorState';
@@ -10,7 +10,7 @@ import {type Stats} from '../Stats/Stats';
 
 export function applyDownwardCompressor(
 	audioData: ModifiedDataView,
-	params: InputParams | MixerParams,
+	params: InputParams | ProcessorParams,
 	downwardCompressorState: DownwardCompressorState,
 	postDownwardCompressor: Stats,
 ): void {

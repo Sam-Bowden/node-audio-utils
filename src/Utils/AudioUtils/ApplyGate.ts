@@ -1,4 +1,4 @@
-import {type InputParams, type MixerParams} from '../../Types/ParamTypes';
+import {type InputParams, type ProcessorParams} from '../../Types/ParamTypes';
 import {type ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 import {type GateState} from '../State/GateState';
@@ -10,7 +10,7 @@ import {type Stats} from '../Stats/Stats';
 
 export function applyGate(
 	audioData: ModifiedDataView,
-	params: InputParams | MixerParams,
+	params: InputParams | ProcessorParams,
 	gateState: GateState,
 	postGate: Stats,
 ): void {

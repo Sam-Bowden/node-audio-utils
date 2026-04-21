@@ -1,5 +1,5 @@
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
-import {type InputParams, type MixerParams} from '../../Types/ParamTypes';
+import {type InputParams, type ProcessorParams} from '../../Types/ParamTypes';
 
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from './IsLittleEndian';
@@ -7,7 +7,7 @@ import {getValueRange} from './GetValueRange';
 import {getMethodName} from './GetMethodName';
 import {getZeroSample} from './GetZeroSample';
 
-export function mixAudioData(audioData: ModifiedDataView[], params: InputParams | MixerParams): ModifiedDataView {
+export function mixAudioData(audioData: ModifiedDataView[], params: InputParams | ProcessorParams): ModifiedDataView {
 	const bytesPerElement = params.bitDepth / 8;
 
 	const valueRange = getValueRange(params.bitDepth, params.unsigned);

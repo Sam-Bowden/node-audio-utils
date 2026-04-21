@@ -1,11 +1,11 @@
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
-import {type InterleaverParams} from '../../Types/ParamTypes';
+import {type ProcessorParams} from '../../Types/ParamTypes';
 
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from './IsLittleEndian';
 import {getMethodName} from './GetMethodName';
 
-export function interleaveAudioData(audioData: ModifiedDataView[], params: InterleaverParams): ModifiedDataView {
+export function interleaveAudioData(audioData: ModifiedDataView[], params: ProcessorParams): ModifiedDataView {
 	const bytesPerElement = params.bitDepth / 8;
 
 	const bytesPerChannel = params.highWaterMark ?? bytesPerElement;

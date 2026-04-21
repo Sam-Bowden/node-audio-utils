@@ -1,5 +1,5 @@
 import {type AudioUtils} from '../Types/AudioUtils';
-import {type InputParams, type MixerParams} from '../Types/ParamTypes';
+import {type InputParams, type ProcessorParams} from '../Types/ParamTypes';
 import {type DownwardCompressorState} from './State/DownwardCompressorState';
 import {type GateState} from './State/GateState';
 import {UpmixState} from './State/UpmixState';
@@ -26,7 +26,7 @@ export class InputUtils implements AudioUtils {
 	public readonly processingStats: ProcessingStats;
 
 	private readonly audioInputParams: InputParams;
-	private readonly audioMixerParams: MixerParams;
+	private readonly audioProcessorParams: ProcessorParams;
 
 	private changedParams: InputParams;
 
@@ -37,9 +37,9 @@ export class InputUtils implements AudioUtils {
 	private readonly downwardCompressorState: DownwardCompressorState;
 	private upmixState?: UpmixState;
 
-	constructor(inputParams: InputParams, mixerParams: MixerParams) {
+	constructor(inputParams: InputParams, mixerParams: ProcessorParams) {
 		this.audioInputParams = inputParams;
-		this.audioMixerParams = mixerParams;
+		this.audioProcessorParams = mixerParams;
 
 		this.changedParams = {...this.audioInputParams};
 
@@ -60,24 +60,24 @@ export class InputUtils implements AudioUtils {
 	}
 
 	public checkIntType(): this {
-		if (Boolean(this.changedParams.unsigned) !== Boolean(this.audioMixerParams.unsigned)) {
-			changeIntType(this.audioData, this.changedParams, this.audioMixerParams.unsigned);
+		if (Boolean(this.changedParams.unsigned) !== Boolean(this.audioProcessorParams.unsigned)) {
+			changeIntType(this.audioData, this.changedParams, this.audioProcessorParams.unsigned);
 		}
 
 		return this;
 	}
 
 	public checkBitDepth(): this {
-		if (this.changedParams.bitDepth !== this.audioMixerParams.bitDepth) {
-			this.audioData = changeBitDepth(this.audioData, this.changedParams, this.audioMixerParams);
+		if (this.changedParams.bitDepth !== this.audioProcessorParams.bitDepth) {
+			this.audioData = changeBitDepth(this.audioData, this.changedParams, this.audioProcessorParams);
 		}
 
 		return this;
 	}
 
 	public checkSampleRate(): this {
-		if (this.changedParams.sampleRate !== this.audioMixerParams.sampleRate) {
-			this.audioData = changeSampleRate(this.audioData, this.changedParams, this.audioMixerParams);
+		if (this.changedParams.sampleRate !== this.audioProcessorParams.sampleRate) {
+			this.audioData = changeSampleRate(this.audioData, this.changedParams, this.audioProcessorParams);
 		}
 
 		return this;
@@ -137,10 +137,10 @@ export class InputUtils implements AudioUtils {
 	}
 
 	public checkChannelsCount(): this {
-		if (this.changedParams.channels !== this.audioMixerParams.channels) {
+		if (this.changedParams.channels !== this.audioProcessorParams.channels) {
 			assertChannelsCount(this.changedParams.channels);
 
-			this.audioData = changeChannelsCount(this.audioData, this.changedParams, this.audioMixerParams);
+			this.audioData = changeChannelsCount(this.audioData, this.changedParams, this.audioProcessorParams);
 		}
 
 		return this;
@@ -194,8 +194,8 @@ export class InputUtils implements AudioUtils {
 	}
 
 	public checkEndianness(): this {
-		if (this.changedParams.endianness !== this.audioMixerParams.endianness) {
-			changeEndianness(this.audioData, this.changedParams, this.audioMixerParams);
+		if (this.changedParams.endianness !== this.audioProcessorParams.endianness) {
+			changeEndianness(this.audioData, this.changedParams, this.audioProcessorParams);
 		}
 
 		return this;

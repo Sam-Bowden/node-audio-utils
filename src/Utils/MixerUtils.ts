@@ -1,5 +1,5 @@
 import {type AudioUtils} from '../Types/AudioUtils';
-import {type MixerParams} from '../Types/ParamTypes';
+import {type ProcessorParams} from '../Types/ParamTypes';
 import {type DownwardCompressorState} from './State/DownwardCompressorState';
 import {type GateState} from './State/GateState';
 
@@ -15,8 +15,8 @@ import {updateStats} from './AudioUtils/UpdateStats';
 export class MixerUtils implements AudioUtils {
 	public readonly processingStats: ProcessingStats;
 
-	private readonly audioMixerParams: MixerParams;
-	private changedParams: MixerParams;
+	private readonly audioProcessorParams: ProcessorParams;
+	private changedParams: ProcessorParams;
 
 	private dataCollection: ModifiedDataView[] = [];
 
@@ -26,10 +26,10 @@ export class MixerUtils implements AudioUtils {
 	private readonly gateState: GateState;
 	private readonly downwardCompressorState: DownwardCompressorState;
 
-	constructor(mixerParams: MixerParams) {
-		this.audioMixerParams = mixerParams;
+	constructor(mixerParams: ProcessorParams) {
+		this.audioProcessorParams = mixerParams;
 
-		this.changedParams = {...this.audioMixerParams};
+		this.changedParams = {...this.audioProcessorParams};
 
 		this.mixedData = new ModifiedDataView(this.emptyData.buffer);
 
@@ -43,7 +43,7 @@ export class MixerUtils implements AudioUtils {
 	public setAudioData(audioData: Uint8Array[]): this {
 		this.dataCollection = audioData.map((audioData: Uint8Array) => new ModifiedDataView(audioData.buffer));
 
-		this.changedParams = {...this.audioMixerParams};
+		this.changedParams = {...this.audioProcessorParams};
 
 		return this;
 	}
@@ -59,7 +59,7 @@ export class MixerUtils implements AudioUtils {
 	}
 
 	public checkPreProcessVolume(): this {
-		const preProcessVolume = this.audioMixerParams.preProcessVolume ?? 100;
+		const preProcessVolume = this.audioProcessorParams.preProcessVolume ?? 100;
 
 		if (preProcessVolume !== 100) {
 			changeVolume(this.mixedData, this.changedParams, preProcessVolume);
@@ -69,7 +69,7 @@ export class MixerUtils implements AudioUtils {
 	}
 
 	public checkPostProcessVolume(): this {
-		const postProcessVolume = this.audioMixerParams.postProcessVolume ?? 100;
+		const postProcessVolume = this.audioProcessorParams.postProcessVolume ?? 100;
 
 		if (postProcessVolume !== 100) {
 			changeVolume(this.mixedData, this.changedParams, postProcessVolume);
@@ -85,7 +85,7 @@ export class MixerUtils implements AudioUtils {
 	}
 
 	public applyGate(): this {
-		if (this.audioMixerParams.gateThreshold !== undefined) {
+		if (this.audioProcessorParams.gateThreshold !== undefined) {
 			applyGate(
 				this.mixedData,
 				this.changedParams,
@@ -98,7 +98,7 @@ export class MixerUtils implements AudioUtils {
 	}
 
 	public applyDownwardCompressor(): this {
-		if (this.audioMixerParams.downwardCompressorThreshold !== undefined) {
+		if (this.audioProcessorParams.downwardCompressorThreshold !== undefined) {
 			applyDownwardCompressor(
 				this.mixedData,
 				this.changedParams,

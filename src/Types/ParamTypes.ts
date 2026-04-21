@@ -18,12 +18,7 @@ type BasedParams = {
 	downwardCompressorReleaseSamples?: number;
 };
 
-export type MixerParams = {
-	highWaterMark?: number;
-	maxBufferLength?: number;
-} & BasedParams;
-
-export type InterleaverParams = {
+export type ProcessorParams = {
 	highWaterMark?: number;
 	maxBufferLength?: number;
 } & BasedParams;
