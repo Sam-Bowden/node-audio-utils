@@ -60,13 +60,10 @@ export class AudioInterleaver extends Readable {
 		callback(error);
 	}
 
-	public createAudioInput(inputParams: InputParams, index: number, channelCount: number): AudioInput {
-		const interleaverParams = {
-			...this.interleaverParams,
-			// Interleaver channels is the running total of all registered input channels.
-			// Override it here so AudioInput does not convert the channel count to match the interleaver total.
-			channels: channelCount,
-		};
+	public createAudioInput(inputParams: InputParams, index: number): AudioInput {
+		const interleaverParams = Object.create(this.interleaverParams) as InterleaverParams;
+		interleaverParams.channels = inputParams.channels;
+
 		const audioInput = new AudioInput(inputParams, interleaverParams, this.removeAudioinput.bind(this));
 
 		if (index >= this.inputs.length) {
