@@ -37,9 +37,9 @@ export class InputUtils implements AudioUtils {
 	private readonly downwardCompressorState: DownwardCompressorState;
 	private upmixState?: UpmixState;
 
-	constructor(inputParams: InputParams, mixerParams: ProcessorParams) {
+	constructor(inputParams: InputParams, processorParams: ProcessorParams) {
 		this.audioInputParams = inputParams;
-		this.audioProcessorParams = mixerParams;
+		this.audioProcessorParams = processorParams;
 
 		this.changedParams = {...this.audioInputParams};
 
@@ -49,7 +49,7 @@ export class InputUtils implements AudioUtils {
 
 		this.downwardCompressorState = {ratio: 1};
 
-		this.processingStats = new ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
+		this.processingStats = new ProcessingStats(processorParams.bitDepth, processorParams.channels);
 	}
 
 	public setAudioData(audioData: Uint8Array): this {

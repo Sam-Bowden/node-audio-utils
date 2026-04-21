@@ -5,12 +5,12 @@ import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from '../General/IsLittleEndian';
 import {getMethodName} from '../General/GetMethodName';
 
-export function changeSampleRate(audioData: ModifiedDataView, inputParams: InputParams, mixerParams: ProcessorParams): ModifiedDataView {
+export function changeSampleRate(audioData: ModifiedDataView, inputParams: InputParams, processorParams: ProcessorParams): ModifiedDataView {
 	const bytesPerElement = inputParams.bitDepth / 8;
 
 	const isLe = isLittleEndian(inputParams.endianness);
 
-	const scaleFactor = inputParams.sampleRate / mixerParams.sampleRate;
+	const scaleFactor = inputParams.sampleRate / processorParams.sampleRate;
 
 	const totalInputSamples = Math.floor(audioData.byteLength / bytesPerElement);
 	const totalOutputSamples = Math.ceil(totalInputSamples / scaleFactor);
@@ -21,7 +21,7 @@ export function changeSampleRate(audioData: ModifiedDataView, inputParams: Input
 	const allocDataView = new ModifiedDataView(allocData.buffer);
 
 	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(mixerParams.bitDepth, mixerParams.unsigned)}`;
+	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(processorParams.bitDepth, processorParams.unsigned)}`;
 
 	for (let index = 0; index < totalOutputSamples; index++) {
 		const interpolatePosition = index * scaleFactor;
@@ -40,7 +40,7 @@ export function changeSampleRate(audioData: ModifiedDataView, inputParams: Input
 		allocDataView[setSampleMethod](index * bytesPerElement, interpolatedValue, isLe);
 	}
 
-	inputParams.sampleRate = mixerParams.sampleRate;
+	inputParams.sampleRate = processorParams.sampleRate;
 
 	return allocDataView;
 }

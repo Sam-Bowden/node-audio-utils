@@ -9,7 +9,7 @@ import {AudioInput} from '../AudioInput/AudioInput';
 import {type ProcessingStats} from '../Utils/Stats/ProcessingStats';
 
 export class AudioMixer extends Readable {
-	private readonly mixerParams: ProcessorParams;
+	private readonly processorParams: ProcessorParams;
 	private readonly audioUtils: MixerUtils;
 
 	private readonly inputs: AudioInput[] = [];
@@ -17,16 +17,16 @@ export class AudioMixer extends Readable {
 	constructor(params: ProcessorParams) {
 		super();
 
-		this.mixerParams = params;
+		this.processorParams = params;
 		this.audioUtils = new MixerUtils(params);
 	}
 
 	get params(): Readonly<ProcessorParams> {
-		return this.mixerParams;
+		return this.processorParams;
 	}
 
 	set params(params: OmitSomeParams<ProcessorParams>) {
-		Object.assign(this.mixerParams, params);
+		Object.assign(this.processorParams, params);
 	}
 
 	get processingStats(): ProcessingStats {
@@ -40,7 +40,7 @@ export class AudioMixer extends Readable {
 			.filter(size => size >= (this.params.highWaterMark ?? (this.params.bitDepth / 8)));
 
 		if (allInputsSize.length > 0) {
-			const minDataSize: number = this.mixerParams.highWaterMark ?? Math.min(...allInputsSize);
+			const minDataSize: number = this.processorParams.highWaterMark ?? Math.min(...allInputsSize);
 
 			const availableInputs = this.inputs.filter((input: AudioInput) => input.dataSize >= minDataSize);
 			const dataCollection: Uint8Array[] = availableInputs.map((input: AudioInput) => input.getData(minDataSize));
@@ -69,7 +69,7 @@ export class AudioMixer extends Readable {
 	}
 
 	public createAudioInput(inputParams: InputParams): AudioInput {
-		const audioInput = new AudioInput(inputParams, this.mixerParams, this.removeAudioinput.bind(this));
+		const audioInput = new AudioInput(inputParams, this.processorParams, this.removeAudioinput.bind(this));
 
 		this.inputs.push(audioInput);
 

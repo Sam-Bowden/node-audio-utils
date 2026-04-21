@@ -8,7 +8,7 @@ import {AudioInput} from '../AudioInput/AudioInput';
 import {InterleaverUtils} from '../Utils/InterleaverUtils';
 
 export class AudioInterleaver extends Readable {
-	private readonly interleaverParams: ProcessorParams;
+	private readonly processorParams: ProcessorParams;
 	private readonly audioUtils: InterleaverUtils;
 
 	private readonly inputs: AudioInput[] = [];
@@ -16,7 +16,7 @@ export class AudioInterleaver extends Readable {
 	constructor(params: ProcessorParams) {
 		super();
 
-		this.interleaverParams = params;
+		this.processorParams = params;
 		this.audioUtils = new InterleaverUtils(params);
 	}
 
@@ -25,11 +25,11 @@ export class AudioInterleaver extends Readable {
 	}
 
 	get params(): Readonly<ProcessorParams> {
-		return this.interleaverParams;
+		return this.processorParams;
 	}
 
 	set params(params: OmitSomeParams<ProcessorParams>) {
-		Object.assign(this.interleaverParams, params);
+		Object.assign(this.processorParams, params);
 	}
 
 	_read(): void {
@@ -39,7 +39,7 @@ export class AudioInterleaver extends Readable {
 			return;
 		}
 
-		const bytesPerChannel = this.interleaverParams.highWaterMark ?? (this.interleaverParams.bitDepth / 8);
+		const bytesPerChannel = this.processorParams.highWaterMark ?? (this.processorParams.bitDepth / 8);
 
 		const dataCollection: Uint8Array[] = this.inputs.map((input: AudioInput) => input.getData(bytesPerChannel * input.params.channels));
 
@@ -61,10 +61,10 @@ export class AudioInterleaver extends Readable {
 	}
 
 	public createAudioInput(inputParams: InputParams, index: number): AudioInput {
-		const interleaverParams = Object.create(this.interleaverParams) as ProcessorParams;
-		interleaverParams.channels = inputParams.channels;
+		const processorParams = Object.create(this.processorParams) as ProcessorParams;
+		processorParams.channels = inputParams.channels;
 
-		const audioInput = new AudioInput(inputParams, interleaverParams, this.removeAudioinput.bind(this));
+		const audioInput = new AudioInput(inputParams, processorParams, this.removeAudioinput.bind(this));
 
 		if (index >= this.inputs.length) {
 			this.inputs.push(audioInput);
@@ -72,7 +72,7 @@ export class AudioInterleaver extends Readable {
 			this.inputs.splice(index, 0, audioInput);
 		}
 
-		this.interleaverParams.channels = this.inputs.reduce((sum, input) => sum + input.params.channels, 0);
+		this.processorParams.channels = this.inputs.reduce((sum, input) => sum + input.params.channels, 0);
 
 		return audioInput;
 	}
@@ -95,7 +95,7 @@ export class AudioInterleaver extends Readable {
 
 		if (findAudioInput !== -1) {
 			this.inputs.splice(findAudioInput, 1);
-			this.interleaverParams.channels = this.inputs.reduce((sum, input) => sum + input.params.channels, 0);
+			this.processorParams.channels = this.inputs.reduce((sum, input) => sum + input.params.channels, 0);
 
 			return true;
 		}

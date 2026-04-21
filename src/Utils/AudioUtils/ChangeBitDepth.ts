@@ -6,22 +6,22 @@ import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from '../General/IsLittleEndian';
 import {getMethodName} from '../General/GetMethodName';
 
-export function changeBitDepth(audioData: ModifiedDataView, inputParams: InputParams, mixerParams: ProcessorParams): ModifiedDataView {
+export function changeBitDepth(audioData: ModifiedDataView, inputParams: InputParams, processorParams: ProcessorParams): ModifiedDataView {
 	const oldBytesPerElement = inputParams.bitDepth / 8;
-	const newBytesPerElement = mixerParams.bitDepth / 8;
+	const newBytesPerElement = processorParams.bitDepth / 8;
 
-	const scalingFactor = 2 ** (mixerParams.bitDepth - inputParams.bitDepth);
-	const maxValue = 2 ** (mixerParams.bitDepth - 1);
+	const scalingFactor = 2 ** (processorParams.bitDepth - inputParams.bitDepth);
+	const maxValue = 2 ** (processorParams.bitDepth - 1);
 
 	const isLe = isLittleEndian(inputParams.endianness);
 
-	const dataSize = audioData.byteLength * (mixerParams.bitDepth / inputParams.bitDepth);
+	const dataSize = audioData.byteLength * (processorParams.bitDepth / inputParams.bitDepth);
 
 	const allocData = new Uint8Array(dataSize);
 	const allocDataView = new ModifiedDataView(allocData.buffer);
 
 	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(mixerParams.bitDepth, mixerParams.unsigned)}`;
+	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(processorParams.bitDepth, processorParams.unsigned)}`;
 
 	for (let index = 0; index < audioData.byteLength; index += oldBytesPerElement) {
 		const audioSample = audioData[getSampleMethod](index, isLe);
@@ -37,7 +37,7 @@ export function changeBitDepth(audioData: ModifiedDataView, inputParams: InputPa
 		allocDataView[setSampleMethod](newSamplePosition, scaledSample, isLe);
 	}
 
-	inputParams.bitDepth = mixerParams.bitDepth;
+	inputParams.bitDepth = processorParams.bitDepth;
 
 	return allocDataView;
 }

@@ -26,18 +26,18 @@ export class MixerUtils implements AudioUtils {
 	private readonly gateState: GateState;
 	private readonly downwardCompressorState: DownwardCompressorState;
 
-	constructor(mixerParams: ProcessorParams) {
-		this.audioProcessorParams = mixerParams;
+	constructor(processorParams: ProcessorParams) {
+		this.audioProcessorParams = processorParams;
 
 		this.changedParams = {...this.audioProcessorParams};
 
 		this.mixedData = new ModifiedDataView(this.emptyData.buffer);
 
-		this.gateState = {holdSamplesRemaining: mixerParams.gateHoldSamples, attenuation: 1};
+		this.gateState = {holdSamplesRemaining: processorParams.gateHoldSamples, attenuation: 1};
 
 		this.downwardCompressorState = {ratio: 1};
 
-		this.processingStats = new ProcessingStats(mixerParams.bitDepth, mixerParams.channels);
+		this.processingStats = new ProcessingStats(processorParams.bitDepth, processorParams.channels);
 	}
 
 	public setAudioData(audioData: Uint8Array[]): this {

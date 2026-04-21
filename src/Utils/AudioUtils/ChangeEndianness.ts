@@ -5,11 +5,11 @@ import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 import {isLittleEndian} from '../General/IsLittleEndian';
 import {getMethodName} from '../General/GetMethodName';
 
-export function changeEndianness(audioData: ModifiedDataView, inputParams: InputParams, mixerParams: ProcessorParams): void {
+export function changeEndianness(audioData: ModifiedDataView, inputParams: InputParams, processorParams: ProcessorParams): void {
 	const bytesPerElement = inputParams.bitDepth / 8;
 
 	const isInputLe = isLittleEndian(inputParams.endianness);
-	const isMixerLe = isLittleEndian(mixerParams.endianness);
+	const isMixerLe = isLittleEndian(processorParams.endianness);
 
 	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
 	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
@@ -20,5 +20,5 @@ export function changeEndianness(audioData: ModifiedDataView, inputParams: Input
 		audioData[setSampleMethod](index, sample, isMixerLe);
 	}
 
-	inputParams.endianness = mixerParams.endianness;
+	inputParams.endianness = processorParams.endianness;
 }

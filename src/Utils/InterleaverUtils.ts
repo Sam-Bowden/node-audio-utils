@@ -15,8 +15,8 @@ export class InterleaverUtils implements AudioUtils {
 	private readonly emptyData = new Uint8Array(0);
 	private interleavedData: ModifiedDataView;
 
-	constructor(interleaverParams: ProcessorParams) {
-		this.audioProcessorParams = interleaverParams;
+	constructor(processorParams: ProcessorParams) {
+		this.audioProcessorParams = processorParams;
 
 		this.changedParams = {...this.audioProcessorParams};
 
