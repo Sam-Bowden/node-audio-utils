@@ -6,9 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "lint": "eslint",
-    "build": "npm run build-napi && rm -rf dist && eslint && tsc",
-    "test": "mocha -r ts-node/register 'src/**/*.test.ts' --exit",
-    "build-napi": "napi build -v --release --manifest-path pcm-monitor/src/Cargo.toml --output-dir pcm-monitor/dist"
+    "build": "rm -rf dist && eslint && tsc",
+    "test": "mocha -r ts-node/register 'src/**/*.test.ts' --exit"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -40,13 +39,6 @@
     "globals": "^15.9.0",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "@napi-rs/cli": "^3.5.1"
-  },
-	"exports": {
-		".": {
-			"require": "./dist/index.js",
-			"types": "./dist/index.d.ts"
-		}
-	}
+    "typescript": "^5.8.3"
+  }
 }
