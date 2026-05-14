@@ -18,18 +18,22 @@ type BasedParams = {
 	downwardCompressorReleaseSamples?: number;
 };
 
-export type MixerParams = {
+export type ProcessorParams = {
 	highWaterMark?: number;
 	maxBufferLength?: number;
 } & BasedParams;
 
-export type InterleaverParams = {
-	highWaterMark?: number;
-	maxBufferLength?: number;
-} & BasedParams;
+export type UpmixOptions = {
+	outputLayout: 'stereo' | '5.1' | '7.1';
+	windowSize: number;
+};
 
 export type InputParams = {
 	correctByteSize?: boolean;
+	downmixMatrix?: number[][];
+	activeChannels?: number;
+	activeChannelsOffset?: number;
+	upmixOptions?: UpmixOptions;
 } & BasedParams;
 
 export type StatsParams = Omit<BasedParams, 'volume'>;

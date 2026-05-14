@@ -133,3 +133,5 @@ out
 .pnp.*
 
 .vscode
+
+dist/
