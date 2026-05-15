@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "lint": "eslint",
-    "build": "eslint && tsc",
+    "build": "npm run build-node-ebur128 && eslint && tsc",
+    "build-node-ebur128": "cd libs/node-ebur128 && npm run build",
     "test": "mocha -r ts-node/register 'src/**/*.test.ts' --exit"
   },
   "engines": {

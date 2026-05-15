@@ -8,7 +8,6 @@ import {
 import {RmsMonitor} from './RMSMonitor';
 
 export class AudioStats extends Writable {
-	/** Generic audio monitors from EBUR128 crate (LUFS, LRA, true peak) */
 	private readonly monitor: Monitor;
 	private readonly rmsMonitors: RmsMonitor[];
 
@@ -36,18 +35,12 @@ export class AudioStats extends Writable {
 		return stats;
 	}
 
-	/** Resets the peak and rms measurements.
-	 * Intended to be called at the stats update frequency of the PCMMonitor module.
-	 */
 	public resetPeaks() {
 		this.monitor.resetPeaks();
 		this.rmsMonitors.forEach(m => {
 			m.reset();
 		});
 	}
-
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public close() { }
 }
 
 export type LoudnessMonitorParams = {
