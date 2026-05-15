@@ -1,7 +1,3 @@
-# Build output
-dist/
-pcm-monitor/src/target
-
 # Logs
 logs
 *.log
