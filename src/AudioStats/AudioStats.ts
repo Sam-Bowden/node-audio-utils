@@ -30,9 +30,7 @@ export class AudioStats extends Writable {
 	}
 
 	public getStats(): Stats & {rms: number[]} {
-		const stats = this.monitor.getStats() as Stats & {rms: number[]};
-		stats.rms = this.rmsMonitors.map(m => m.getRms());
-		return stats;
+		return {...this.monitor.getStats(), rms: this.rmsMonitors.map(m => m.getRms())};
 	}
 
 	public resetPeaks() {
