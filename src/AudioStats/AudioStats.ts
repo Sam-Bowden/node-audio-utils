@@ -3,19 +3,19 @@ import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
 
 import {
-	type Channel, type PCMMonitor, PcmMonitor, type PCMStats,
-} from '../../pcm-monitor/dist';
-import {RMSMonitor} from './RMSMonitor';
+	type Channel, Monitor, type Stats,
+} from 'node-ebur128';
+import {RmsMonitor} from './RMSMonitor';
 
 export class AudioStats extends Writable {
 	/** Generic audio monitors from EBUR128 crate (LUFS, LRA, true peak) */
-	private readonly monitor: PCMMonitor;
-	private readonly rmsMonitors: RMSMonitor[];
+	private readonly monitor: Monitor;
+	private readonly rmsMonitors: RmsMonitor[];
 
 	constructor(readonly params: LoudnessMonitorParams) {
 		super();
-		this.monitor = PcmMonitor.new(params.channels, params.sampleRate);
-		this.rmsMonitors = params.channels.map(() => new RMSMonitor());
+		this.monitor = Monitor.new(params.channels, params.sampleRate);
+		this.rmsMonitors = params.channels.map(() => new RmsMonitor());
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void {
@@ -30,9 +30,9 @@ export class AudioStats extends Writable {
 		callback();
 	}
 
-	public getStats(): PCMStats & {rms: number[]} {
-		const stats = this.monitor.getStats() as PCMStats & {rms: number[]};
-		stats.rms = this.rmsMonitors.map(m => m.getRMS());
+	public getStats(): Stats & {rms: number[]} {
+		const stats = this.monitor.getStats() as Stats & {rms: number[]};
+		stats.rms = this.rmsMonitors.map(m => m.getRms());
 		return stats;
 	}
 
@@ -62,9 +62,9 @@ function normaliseChunk(chunk: Uint8Array, bitDepth: BitDepth): Float64Array {
 	const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
 
 	// Normalisation coefficients
-	const N = 2 ** bitDepth;
-	const a = 2 / (N - 1);
-	const b = 1 - ((N - 2) / (N - 1));
+	const n = 2 ** bitDepth;
+	const a = 2 / (n - 1);
+	const b = 1 - ((n - 2) / (n - 1));
 
 	// Normalize from signed bitDepth to [-1, 1]
 	const normaliseSample = (sample: number) => (a * sample) + b;

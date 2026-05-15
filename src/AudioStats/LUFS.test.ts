@@ -1,7 +1,7 @@
 import 'mocha';
 import {expect} from 'chai';
 import {AudioStats} from './AudioStats';
-import {Channel} from '../../pcm-monitor/dist';
+import {Channel} from 'node-ebur128';
 
 /** Generic so I can verify the rust implementation against the existing tests */
 abstract class LoudnessStatsGeneric {
@@ -14,7 +14,7 @@ type WaveParams = {
 	numChannels?: number;
 	frequency?: number;
 	sampleRate?: number;
-	dBFS?: number | number[];
+	dbfs?: number | number[];
 };
 
 function sendWave(stats: LoudnessStatsGeneric, params: WaveParams) {
@@ -24,13 +24,13 @@ function sendWave(stats: LoudnessStatsGeneric, params: WaveParams) {
 	const numSamples = Math.floor(sampleRate * params.durationMs / 1000);
 
 	let levelPerChannel: number[] = new Array<number>(numChannels);
-	if (Array.isArray(params.dBFS)) {
-		levelPerChannel = params.dBFS;
+	if (Array.isArray(params.dbfs)) {
+		levelPerChannel = params.dbfs;
 	} else {
-		levelPerChannel.fill(params.dBFS ?? 0);
+		levelPerChannel.fill(params.dbfs ?? 0);
 	}
 
-	const amplitudePerChannel = levelPerChannel.map(dBFSToAmplitude);
+	const amplitudePerChannel = levelPerChannel.map(dbfsToAmplitude);
 
 	// Send all samples as one buffer (unrealistic, but speeds up the tests)
 	// Signed, little-endian
@@ -52,7 +52,7 @@ function sendWave(stats: LoudnessStatsGeneric, params: WaveParams) {
 	stats._write(new Uint8Array(buffer), 'binary', () => undefined);
 }
 
-function sendSilence(stats: LoudnessStatsGeneric, params: Omit<WaveParams, 'frequency' | 'dBFS'>) {
+function sendSilence(stats: LoudnessStatsGeneric, params: Omit<WaveParams, 'frequency' | 'dbfs'>) {
 	const sampleRate = params.sampleRate ?? 48_000;
 	const numChannels = params.numChannels ?? 2;
 	const numSamples = Math.floor(sampleRate * params.durationMs / 1000);
@@ -73,8 +73,8 @@ function sendSilence(stats: LoudnessStatsGeneric, params: Omit<WaveParams, 'freq
 	stats._write(new Uint8Array(buffer), 'binary', () => undefined);
 }
 
-function dBFSToAmplitude(dBFS: number): number {
-	return 10 ** (dBFS / 20);
+function dbfsToAmplitude(dbfs: number): number {
+	return 10 ** (dbfs / 20);
 }
 
 function createLoudnessStats(channels: Channel[]): LoudnessStatsGeneric {
@@ -116,7 +116,7 @@ describe('LoudnessStats', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		sendWave(loudnessStats, {
 			durationMs: 20_000,
-			dBFS: -23.0,
+			dbfs: -23.0,
 		});
 		expect(loudnessStats.getStats().mLufs).to.be.approximately(-23.0, 0.1);
 		expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
@@ -127,7 +127,7 @@ describe('LoudnessStats', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		sendWave(loudnessStats, {
 			durationMs: 20_000,
-			dBFS: -33.0,
+			dbfs: -33.0,
 		});
 		expect(loudnessStats.getStats().mLufs).to.be.approximately(-33.0, 0.1);
 		expect(loudnessStats.getStats().sLufs).to.be.approximately(-33.0, 0.1);
@@ -138,15 +138,15 @@ describe('LoudnessStats', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		sendWave(loudnessStats, {
 			durationMs: 10_000,
-			dBFS: -36.0,
+			dbfs: -36.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 60_000,
-			dBFS: -23.0,
+			dbfs: -23.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 10_000,
-			dBFS: -36.0,
+			dbfs: -36.0,
 		});
 		expect(loudnessStats.getStats().iLufs).to.be.approximately(-23.0, 0.1);
 	}).timeout(4_000);
@@ -155,23 +155,23 @@ describe('LoudnessStats', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		sendWave(loudnessStats, {
 			durationMs: 10_000,
-			dBFS: -72.0,
+			dbfs: -72.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 10_000,
-			dBFS: -36.0,
+			dbfs: -36.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 60_000,
-			dBFS: -23.0,
+			dbfs: -23.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 10_000,
-			dBFS: -36.0,
+			dbfs: -36.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 10_000,
-			dBFS: -72.0,
+			dbfs: -72.0,
 		});
 		expect(loudnessStats.getStats().iLufs).to.be.approximately(-23.0, 0.1);
 	}).timeout(4_000);
@@ -180,15 +180,15 @@ describe('LoudnessStats', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		sendWave(loudnessStats, {
 			durationMs: 20_000,
-			dBFS: -26.0,
+			dbfs: -26.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 20_100,
-			dBFS: -20.0,
+			dbfs: -20.0,
 		});
 		sendWave(loudnessStats, {
 			durationMs: 20_000,
-			dBFS: -26.0,
+			dbfs: -26.0,
 		});
 		expect(loudnessStats.getStats().iLufs).to.be.approximately(-23.0, 0.1);
 	}).timeout(4_000);
@@ -198,7 +198,7 @@ describe('LoudnessStats', () => {
 		sendWave(loudnessStats, {
 			durationMs: 20_000,
 			numChannels: 5,
-			dBFS: [-28.0, -28.0, -24.0, -30.0, -30.0],
+			dbfs: [-28.0, -28.0, -24.0, -30.0, -30.0],
 		});
 		expect(loudnessStats.getStats().iLufs).to.be.approximately(-23.0, 0.1);
 	});
@@ -208,16 +208,16 @@ describe('LoudnessStats', () => {
 	it('Passes EBU Test case #9', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		for (let i = 0; i < 3; i++) {
-			sendWave(loudnessStats, {durationMs: 1_340, dBFS: -20.0});
-			sendWave(loudnessStats, {durationMs: 1_660, dBFS: -30.0});
+			sendWave(loudnessStats, {durationMs: 1_340, dbfs: -20.0});
+			sendWave(loudnessStats, {durationMs: 1_660, dbfs: -30.0});
 		}
 
 		// S LUFS stabilises after 3s
 		expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
 		for (let i = 0; i < 2; i++) {
-			sendWave(loudnessStats, {durationMs: 1_340, dBFS: -20.0});
+			sendWave(loudnessStats, {durationMs: 1_340, dbfs: -20.0});
 			expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
-			sendWave(loudnessStats, {durationMs: 1_660, dBFS: -30.0});
+			sendWave(loudnessStats, {durationMs: 1_660, dbfs: -30.0});
 			expect(loudnessStats.getStats().sLufs).to.be.approximately(-23.0, 0.1);
 		}
 	});
@@ -226,28 +226,28 @@ describe('LoudnessStats', () => {
 
 	it('Passes EBU Test case #11', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
-		let maxMLUFS = -Infinity;
+		let maxMlufs = -Infinity;
 		for (let i = 0; i < 20; i++) {
 			sendSilence(loudnessStats, {durationMs: i * 150});
-			sendWave(loudnessStats, {durationMs: 3_000, dBFS: i - 38.0});
-			maxMLUFS = Math.max(maxMLUFS, loudnessStats.getStats().mLufs);
+			sendWave(loudnessStats, {durationMs: 3_000, dbfs: i - 38.0});
+			maxMlufs = Math.max(maxMlufs, loudnessStats.getStats().mLufs);
 			sendSilence(loudnessStats, {durationMs: 3_000 - (i * 150)});
-			expect(maxMLUFS).to.be.approximately(i - 38.0, 0.1);
+			expect(maxMlufs).to.be.approximately(i - 38.0, 0.1);
 		}
 	}).timeout(4_000);
 
 	it('Passes EBU Test case #12', () => {
 		const loudnessStats = createLoudnessStats([Channel.Left, Channel.Right]);
 		for (let i = 0; i < 3; i++) {
-			sendWave(loudnessStats, {durationMs: 180, dBFS: -20.0});
-			sendWave(loudnessStats, {durationMs: 220, dBFS: -30.0});
+			sendWave(loudnessStats, {durationMs: 180, dbfs: -20.0});
+			sendWave(loudnessStats, {durationMs: 220, dbfs: -30.0});
 		}
 
 		// M LUFS stabilises after 1s
 		expect(loudnessStats.getStats().mLufs).to.be.approximately(-23.0, 0.1);
 		for (let i = 0; i < 22; i++) {
-			sendWave(loudnessStats, {durationMs: 180, dBFS: -20.0});
-			sendWave(loudnessStats, {durationMs: 220, dBFS: -30.0});
+			sendWave(loudnessStats, {durationMs: 180, dbfs: -20.0});
+			sendWave(loudnessStats, {durationMs: 220, dbfs: -30.0});
 			expect(loudnessStats.getStats().mLufs).to.be.approximately(-23.0, 0.1);
 		}
 	});

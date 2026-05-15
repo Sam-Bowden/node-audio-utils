@@ -1,4 +1,4 @@
-export class RMSMonitor {
+export class RmsMonitor {
 	public numSamples = 0;
 	public sumOfSquares = 0;
 
@@ -8,12 +8,12 @@ export class RMSMonitor {
 		this.sumOfSquares += sample ** 2;
 	}
 
-	public getRMS(): number {
+	public getRms(): number {
 		if (this.numSamples === 0) {
 			return 0;
 		}
 
-		return percentFSToDB(Math.sqrt(this.sumOfSquares / this.numSamples));
+		return percentFsToDb(Math.sqrt(this.sumOfSquares / this.numSamples));
 	}
 
 	public reset() {
@@ -22,6 +22,6 @@ export class RMSMonitor {
 	}
 }
 
-function percentFSToDB(value: number): number {
+function percentFsToDb(value: number): number {
 	return 20 * Math.log10(value);
 }
