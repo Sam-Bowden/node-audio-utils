@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "lint": "eslint",
     "build": "npm run build-node-ebur128 && eslint && tsc",
     "build-node-ebur128": "cd libs/node-ebur128 && npm run build",
     "test": "mocha -r ts-node/register 'src/**/*.test.ts' --exit"
@@ -44,6 +43,6 @@
     "globals": "^15.9.0",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "5.6.3"
   }
 }
