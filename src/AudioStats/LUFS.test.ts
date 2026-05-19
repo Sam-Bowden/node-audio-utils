@@ -43,8 +43,7 @@ function sendWave(stats: LoudnessStatsGeneric, params: WaveParams) {
 		const theta = 2 * Math.PI * i * frequency / sampleRate; // Samples * (waves / second) % (samples / second) = waves
 		for (let ch = 0; ch < numChannels; ch++) {
 			const sample = Math.sin(theta) * amplitudePerChannel[ch];
-			const uint16Value = 0.5 * ((((2 ** 16) - 1) * sample) - 1);
-			view.setUint16(offset, uint16Value, true);
+			view.setInt16(offset, sample * 32767, true);
 			offset += 2;
 		}
 	}
