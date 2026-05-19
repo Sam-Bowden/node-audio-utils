@@ -62,10 +62,9 @@ function sendSilence(stats: LoudnessStatsGeneric, params: Omit<WaveParams, 'freq
 	const view = new DataView(buffer);
 
 	let offset = 0;
-	const uint16Value = ((2 ** 16) - 1) / 2;
 	for (let i = 0; i < numSamples; i++) {
 		for (let ch = 0; ch < numChannels; ch++) {
-			view.setUint16(offset, uint16Value, true);
+			view.setInt16(offset, 0, true);
 			offset += 2;
 		}
 	}
