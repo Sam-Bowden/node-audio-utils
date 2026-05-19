@@ -1,3 +1,6 @@
 [submodule "libs/node-libavfilter-upmix"]
 	path = libs/node-libavfilter-upmix
 	url = https://github.com/Sam-Bowden/node-libavfilter-upmix.git
+[submodule "libs/node-ebur128"]
+	path = libs/node-ebur128
+	url = https://github.com/Sam-Bowden/node-ebur128.git

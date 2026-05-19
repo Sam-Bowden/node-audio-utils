@@ -1,3 +1,4 @@
+import {type Channel} from 'node-ebur128';
 import {type SampleRate, type BitDepth, type Endianness} from './AudioTypes';
 
 type BasedParams = {
@@ -36,6 +37,10 @@ export type InputParams = {
 	upmixOptions?: UpmixOptions;
 } & BasedParams;
 
-export type StatsParams = Omit<BasedParams, 'volume'>;
+export type StatsParams = {
+	sampleRate: SampleRate;
+	channels: Channel[];
+	bitDepth: BitDepth;
+};
 
 export type OmitSomeParams<T> = Omit<T, 'sampleRate' | 'channels' | 'bitDepth'>;

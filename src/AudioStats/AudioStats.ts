@@ -1,39 +1,70 @@
 import {Writable} from 'stream';
-import {type StatsParams} from '../Types/ParamTypes';
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
-import {isLittleEndian} from '../Utils/General/IsLittleEndian';
-import {type BitDepth, type IntType} from '../Types/AudioTypes';
-import {getMethodName} from '../Utils/General/GetMethodName';
+import {type StatsParams} from '../Types/ParamTypes';
+
+import {Monitor, type Stats as MonitorStats} from 'node-ebur128';
 import {Stats} from '../Utils/Stats/Stats';
+import {gainToDecibels} from '../Units/Units';
+import {getValueRange} from '../Utils/General/GetValueRange';
 
 export class AudioStats extends Writable {
-	public readonly stats: Stats;
-	public readonly statsParams: StatsParams;
+	private readonly monitor: Monitor;
+	private readonly stats: Stats;
+	private readonly minDb: number;
 
-	constructor(statsParams: StatsParams) {
+	constructor(readonly params: StatsParams) {
 		super();
-		this.statsParams = statsParams;
-		this.stats = new Stats(this.statsParams.bitDepth, this.statsParams.channels);
-	}
-
-	reset() {
-		this.stats.reset();
+		this.monitor = Monitor.new(params.channels, params.sampleRate);
+		this.stats = new Stats(params.bitDepth, params.channels.length);
+		this.minDb = gainToDecibels(1 / getValueRange(params.bitDepth).max);
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void {
-		const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
+		const {bitDepth} = this.params;
+		const view = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
+		const numSamples = Math.floor(view.byteLength / (bitDepth / 8));
 
-		const bytesPerElement = this.statsParams.bitDepth / 8;
-
-		const isLe = isLittleEndian(this.statsParams.endianness);
-
-		const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(this.statsParams.bitDepth, this.statsParams.unsigned)}`;
-
-		for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
-			const sample = audioData[getSampleMethod](index, isLe);
-			this.stats.update(sample);
+		if (bitDepth === 8) {
+			const samples = new Int16Array(numSamples);
+			this.fillSamples(samples, i => view.getInt8(i), 256);
+			this.monitor.addSamplesI16(samples);
+		} else if (bitDepth === 16) {
+			const samples = new Int16Array(numSamples);
+			this.fillSamples(samples, i => view.getInt16(i * 2, true), 1);
+			this.monitor.addSamplesI16(samples);
+		} else if (bitDepth === 24) {
+			const samples = new Int32Array(numSamples);
+			this.fillSamples(samples, i => view.getInt24(i * 3, true), 256);
+			this.monitor.addSamplesI32(samples);
+		} else {
+			const samples = new Int32Array(numSamples);
+			this.fillSamples(samples, i => view.getInt32(i * 4, true), 1);
+			this.monitor.addSamplesI32(samples);
 		}
 
 		callback();
+	}
+
+	public getStats(): MonitorStats & {rms: number[]} {
+		const monitorStats = this.monitor.getStats();
+		const clamp = (db: number) => Math.max(db, this.minDb);
+		return {
+			...monitorStats,
+			truePeaksDbtp: monitorStats.truePeaksDbtp.map(clamp),
+			rms: this.stats.channels.map(c => clamp(gainToDecibels(c.rootMeanSquare ?? 0))),
+		};
+	}
+
+	public resetPeaks() {
+		this.monitor.resetPeaks();
+		this.stats.reset();
+	}
+
+	private fillSamples(target: Int16Array | Int32Array, read: (i: number) => number, scale: number): void {
+		for (let i = 0; i < target.length; i++) {
+			const raw = read(i);
+			target[i] = raw * scale;
+			this.stats.update(raw);
+		}
 	}
 }
