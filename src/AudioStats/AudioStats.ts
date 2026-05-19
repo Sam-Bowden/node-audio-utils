@@ -3,41 +3,71 @@ import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
 import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
 
 import {
-	type Channel, Monitor, type Stats,
+	type Channel, Monitor, type Stats as MonitorStats,
 } from 'node-ebur128';
-import {RmsMonitor} from './RMSMonitor';
+import {Stats} from '../Utils/Stats/Stats';
+import {gainToDecibels} from '../Units/Units';
+import {getValueRange} from '../Utils/General/GetValueRange';
 
 export class AudioStats extends Writable {
 	private readonly monitor: Monitor;
-	private readonly rmsMonitors: RmsMonitor[];
+	private readonly stats: Stats;
+	private readonly minDb: number;
 
 	constructor(readonly params: LoudnessMonitorParams) {
 		super();
 		this.monitor = Monitor.new(params.channels, params.sampleRate);
-		this.rmsMonitors = params.channels.map(() => new RmsMonitor());
+		this.stats = new Stats(params.bitDepth, params.channels.length);
+		this.minDb = gainToDecibels(1 / getValueRange(params.bitDepth).max);
 	}
 
 	public _write(chunk: Uint8Array, _: BufferEncoding, callback: (error?: Error) => void): void {
-		const samples = normaliseChunk(chunk, this.params.bitDepth);
-		this.monitor.addSamples(samples);
-		for (const sample of samples) {
-			this.rmsMonitors.forEach(m => {
-				m.onSample(sample);
-			});
+		const {bitDepth} = this.params;
+		const view = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
+		const numSamples = Math.floor(view.byteLength / (bitDepth / 8));
+
+		if (bitDepth === 8) {
+			const samples = new Int16Array(numSamples);
+			this.fillSamples(samples, i => view.getInt8(i), 256);
+			this.monitor.addSamplesI16(samples);
+		} else if (bitDepth === 16) {
+			const samples = new Int16Array(numSamples);
+			this.fillSamples(samples, i => view.getInt16(i * 2, true), 1);
+			this.monitor.addSamplesI16(samples);
+		} else if (bitDepth === 24) {
+			const samples = new Int32Array(numSamples);
+			this.fillSamples(samples, i => view.getInt24(i * 3, true), 256);
+			this.monitor.addSamplesI32(samples);
+		} else {
+			const samples = new Int32Array(numSamples);
+			this.fillSamples(samples, i => view.getInt32(i * 4, true), 1);
+			this.monitor.addSamplesI32(samples);
 		}
 
 		callback();
 	}
 
-	public getStats(): Stats & {rms: number[]} {
-		return {...this.monitor.getStats(), rms: this.rmsMonitors.map(m => m.getRms())};
+	public getStats(): MonitorStats & {rms: number[]} {
+		const monitorStats = this.monitor.getStats();
+		const clamp = (db: number) => Math.max(db, this.minDb);
+		return {
+			...monitorStats,
+			truePeaksDbtp: monitorStats.truePeaksDbtp.map(clamp),
+			rms: this.stats.channels.map(c => clamp(gainToDecibels(c.rootMeanSquare ?? 0))),
+		};
 	}
 
 	public resetPeaks() {
 		this.monitor.resetPeaks();
-		this.rmsMonitors.forEach(m => {
-			m.reset();
-		});
+		this.stats.reset();
+	}
+
+	private fillSamples(target: Int16Array | Int32Array, read: (i: number) => number, scale: number): void {
+		for (let i = 0; i < target.length; i++) {
+			const raw = read(i);
+			target[i] = raw * scale;
+			this.stats.update(raw);
+		}
 	}
 }
 
@@ -46,27 +76,3 @@ export type LoudnessMonitorParams = {
 	channels: Channel[];
 	bitDepth: BitDepth;
 };
-
-/** Converts a raw buffer of little-endian signed integer samples to an array of floats normalised to [-1, 1] */
-function normaliseChunk(chunk: Uint8Array, bitDepth: BitDepth): Float64Array {
-	const bytesPerSample = bitDepth / 8;
-	const audioData = new ModifiedDataView(chunk.buffer, chunk.byteOffset, chunk.length);
-
-	// Normalisation coefficients
-	const n = 2 ** bitDepth;
-	const a = 2 / (n - 1);
-	const b = 1 - ((n - 2) / (n - 1));
-
-	// Normalize from signed bitDepth to [-1, 1]
-	const normaliseSample = (sample: number) => (a * sample) + b;
-
-	const numSamples = Math.floor(audioData.byteLength / bytesPerSample);
-
-	const samples = new Float64Array(numSamples);
-	for (let i = 0; i < numSamples; i++) {
-		const rawSample = audioData[`getInt${bitDepth}`](i * bytesPerSample, true);
-		samples[i] = normaliseSample(rawSample);
-	}
-
-	return samples;
-}
