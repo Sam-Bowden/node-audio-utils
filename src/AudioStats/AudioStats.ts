@@ -1,10 +1,8 @@
 import {Writable} from 'stream';
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
-import {type SampleRate, type BitDepth} from '../Types/AudioTypes';
+import {type StatsParams} from '../Types/ParamTypes';
 
-import {
-	type Channel, Monitor, type Stats as MonitorStats,
-} from 'node-ebur128';
+import {Monitor, type Stats as MonitorStats} from 'node-ebur128';
 import {Stats} from '../Utils/Stats/Stats';
 import {gainToDecibels} from '../Units/Units';
 import {getValueRange} from '../Utils/General/GetValueRange';
@@ -14,7 +12,7 @@ export class AudioStats extends Writable {
 	private readonly stats: Stats;
 	private readonly minDb: number;
 
-	constructor(readonly params: LoudnessMonitorParams) {
+	constructor(readonly params: StatsParams) {
 		super();
 		this.monitor = Monitor.new(params.channels, params.sampleRate);
 		this.stats = new Stats(params.bitDepth, params.channels.length);
@@ -70,9 +68,3 @@ export class AudioStats extends Writable {
 		}
 	}
 }
-
-export type LoudnessMonitorParams = {
-	sampleRate: SampleRate;
-	channels: Channel[];
-	bitDepth: BitDepth;
-};
