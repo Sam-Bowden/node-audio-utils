@@ -27,6 +27,13 @@ export type ProcessorParams = {
 export type UpmixOptions = {
 	outputLayout: 'stereo' | '5.1' | '7.1';
 	windowSize: number;
+	smoothing: number;
+	angle: number;
+	focus: number;
+	lfeEnabled: boolean;
+	lfeLowCutoff: number;
+	lfeHighCutoff: number;
+	lfeMode: 'add' | 'sub';
 };
 
 export type InputParams = {

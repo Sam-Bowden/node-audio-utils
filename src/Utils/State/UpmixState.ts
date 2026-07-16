@@ -15,6 +15,13 @@ export class UpmixState {
 			inputLayout: string;
 			outputLayout: string;
 			winSize?: number;
+			smooth?: number;
+			angle?: number;
+			focus?: number;
+			lfe?: boolean;
+			lfeLow?: number;
+			lfeHigh?: number;
+			lfeMode?: 'add' | 'sub';
 		}) => UpmixInstance;
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const upmixModule = require('node-libavfilter-upmix') as {Upmix: UpmixCtor};
@@ -25,6 +32,13 @@ export class UpmixState {
 			inputLayout: channelCountToLayout(inputChannels),
 			outputLayout: options.outputLayout,
 			winSize: options.windowSize,
+			smooth: options.smoothing,
+			angle: options.angle,
+			focus: options.focus,
+			lfe: options.lfeEnabled,
+			lfeLow: options.lfeLowCutoff,
+			lfeHigh: options.lfeHighCutoff,
+			lfeMode: options.lfeMode,
 		});
 		this.outputChannels = layoutToChannelCount(options.outputLayout);
 		this.bitDepth = bitDepth;
