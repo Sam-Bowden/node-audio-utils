@@ -1,5 +1,5 @@
 import type {Upmix as UpmixInstance} from 'node-libavfilter-upmix';
-import {type UpmixOptions} from '../../Types/ParamTypes';
+import {type UpmixLfeMode, type UpmixOptions, type UpmixOutputLayout} from '../../Types/ParamTypes';
 
 export class UpmixState {
 	public readonly upmix: UpmixInstance;
@@ -21,7 +21,7 @@ export class UpmixState {
 			lfe?: boolean;
 			lfeLow?: number;
 			lfeHigh?: number;
-			lfeMode?: 'add' | 'sub';
+			lfeMode?: UpmixLfeMode;
 		}) => UpmixInstance;
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const upmixModule = require('node-libavfilter-upmix') as {Upmix: UpmixCtor};
@@ -54,7 +54,7 @@ export class UpmixState {
 	}
 }
 
-function channelCountToLayout(channels: number): string {
+function channelCountToLayout(channels: number): UpmixOutputLayout {
 	switch (channels) {
 		case 2: return 'stereo';
 		case 6: return '5.1';
@@ -63,11 +63,10 @@ function channelCountToLayout(channels: number): string {
 	}
 }
 
-function layoutToChannelCount(layout: string): number {
+function layoutToChannelCount(layout: UpmixOutputLayout): number {
 	switch (layout) {
 		case 'stereo': return 2;
 		case '5.1': return 6;
 		case '7.1': return 8;
-		default: throw new Error(`Unknown channel layout: '${layout}'`);
 	}
 }

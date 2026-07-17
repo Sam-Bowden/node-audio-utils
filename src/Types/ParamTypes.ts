@@ -1,5 +1,9 @@
 import {type Channel} from 'node-ebur128';
-import {type SampleRate, type BitDepth, type Endianness} from './AudioTypes';
+import {
+	type SampleRate, type BitDepth, type Endianness, type UpmixOutputLayout, type UpmixLfeMode,
+} from './AudioTypes';
+
+export type {UpmixOutputLayout, UpmixLfeMode};
 
 type BasedParams = {
 	sampleRate: SampleRate;
@@ -25,7 +29,7 @@ export type ProcessorParams = {
 } & BasedParams;
 
 export type UpmixOptions = {
-	outputLayout: 'stereo' | '5.1' | '7.1';
+	outputLayout: UpmixOutputLayout;
 	windowSize: number;
 	smoothing: number;
 	angle: number;
@@ -33,7 +37,7 @@ export type UpmixOptions = {
 	lfeEnabled: boolean;
 	lfeLowCutoff: number;
 	lfeHighCutoff: number;
-	lfeMode: 'add' | 'sub';
+	lfeMode: UpmixLfeMode;
 };
 
 export type InputParams = {

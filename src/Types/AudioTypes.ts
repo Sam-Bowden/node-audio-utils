@@ -6,8 +6,12 @@ type Endianness = 'LE' | 'BE';
 
 type IntType = 'Int' | 'Uint';
 
+type UpmixOutputLayout = 'stereo' | '5.1' | '7.1';
+
+type UpmixLfeMode = 'add' | 'sub';
+
 export type {
-	SampleRate, BitDepth, Endianness, IntType,
+	SampleRate, BitDepth, Endianness, IntType, UpmixOutputLayout, UpmixLfeMode,
 };
 
 export const isSampleRate = (v: unknown): v is SampleRate =>
