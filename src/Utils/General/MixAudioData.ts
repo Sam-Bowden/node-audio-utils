@@ -21,12 +21,17 @@ export function mixAudioData(audioData: ModifiedDataView[], params: InputParams 
 	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(params.bitDepth, params.unsigned)}`;
 	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(params.bitDepth, params.unsigned)}`;
 
+	const inputCount = audioData.length;
+	const {min, max} = valueRange;
+
 	for (let index = 0; index < newData.length; index += bytesPerElement) {
-		const samples = audioData.map(data => data[getSampleMethod](index, isLe));
+		let mixSample = zeroSample;
 
-		const mixSample = samples.reduce((sample, nextSample) => sample + nextSample, zeroSample);
+		for (let inputIndex = 0; inputIndex < inputCount; inputIndex++) {
+			mixSample += audioData[inputIndex][getSampleMethod](index, isLe);
+		}
 
-		const clipSample = Math.min(Math.max(mixSample, valueRange.min), valueRange.max);
+		const clipSample = Math.min(Math.max(mixSample, min), max);
 
 		mixedData[setSampleMethod](index, clipSample, isLe);
 	}
