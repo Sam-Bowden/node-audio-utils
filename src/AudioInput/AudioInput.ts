@@ -17,7 +17,9 @@ export class AudioInput extends Writable {
 
 	private readonly audioUtils: InputUtils;
 
-	private audioData: Uint8Array = new Uint8Array(0);
+	private chunks: Uint8Array[] = [];
+	private headOffset = 0;
+	private totalBytes = 0;
 	private correctionBuffer: Uint8Array = new Uint8Array(0);
 
 	constructor(inputParams: InputParams, processorParams: ProcessorParams, selfRemoveFunction?: SelfRemoveFunction) {
@@ -46,7 +48,7 @@ export class AudioInput extends Writable {
 	}
 
 	public get dataSize(): number {
-		return this.closed ? (this.processorParams.highWaterMark ?? this.audioData.length) : this.audioData.length;
+		return this.closed ? (this.processorParams.highWaterMark ?? this.totalBytes) : this.totalBytes;
 	}
 
 	public resetUpmixState(): void {
@@ -54,7 +56,9 @@ export class AudioInput extends Writable {
 	}
 
 	public clear(): void {
-		this.audioData = new Uint8Array(0);
+		this.chunks = [];
+		this.headOffset = 0;
+		this.totalBytes = 0;
 		this.audioUtils.clear();
 	}
 
@@ -73,20 +77,18 @@ export class AudioInput extends Writable {
 
 				processedLength = processedData.length;
 
-				let newSize = this.audioData.length + processedData.length;
+				if (processedData.length > 0) {
+					// The queue retains the chunk beyond this call: writers must
+					// not reuse or mutate the buffer they pass in
+					this.chunks.push(processedData);
+					this.totalBytes += processedData.length;
 
-				let head = this.audioData;
+					const {maxBufferLength} = this.processorParams;
 
-				if (this.processorParams.maxBufferLength !== undefined && newSize > this.processorParams.maxBufferLength) {
-					head = this.audioData.subarray(newSize - this.processorParams.maxBufferLength);
-					newSize = this.processorParams.maxBufferLength;
+					if (maxBufferLength !== undefined && this.totalBytes > maxBufferLength) {
+						this.discard(this.totalBytes - maxBufferLength);
+					}
 				}
-
-				const tempChunk = new Uint8Array(newSize);
-				tempChunk.set(head, 0);
-				tempChunk.set(processedData, head.length);
-
-				this.audioData = tempChunk;
 			}
 		}
 
@@ -99,14 +101,18 @@ export class AudioInput extends Writable {
 		this.audioUtils.destroy();
 
 		if (!this.closed) {
-			if (this.audioData.length === 0 && this.correctionBuffer.length === 0) {
+			if (this.totalBytes === 0 && this.correctionBuffer.length === 0) {
 				this.removeInputSelf();
 
 				return;
 			}
 
 			if (this.correctionBuffer.length > 0) {
-				this.audioData = this.correctByteSize(this.correctionBuffer, true);
+				const correctedData = this.correctByteSize(this.correctionBuffer, true);
+
+				this.chunks = correctedData.length > 0 ? [correctedData] : [];
+				this.headOffset = 0;
+				this.totalBytes = correctedData.length;
 			}
 		}
 
@@ -116,19 +122,66 @@ export class AudioInput extends Writable {
 	public getData(size: number): Uint8Array {
 		const zeroSample = getZeroSample(this.inputParams.bitDepth, this.inputParams.unsigned);
 
-		const tempChunk = new Uint8Array(size).fill(zeroSample);
+		const tempChunk = new Uint8Array(size);
 
-		if ((this.audioData.length < size && this.closed) || this.audioData.length >= size) {
-			tempChunk.set(this.audioData.slice(0, size));
+		if ((this.totalBytes < size && this.closed) || this.totalBytes >= size) {
+			const copied = this.consumeInto(tempChunk);
 
-			this.audioData = this.audioData.slice(size);
+			if (copied < size) {
+				tempChunk.fill(zeroSample, copied);
+			}
+		} else {
+			tempChunk.fill(zeroSample);
 		}
 
-		if (this.audioData.length === 0 && this.closed) {
+		if (this.totalBytes === 0 && this.closed) {
 			this.removeInputSelf();
 		}
 
 		return tempChunk;
+	}
+
+	private consumeInto(target: Uint8Array): number {
+		let copied = 0;
+
+		while (copied < target.length && this.chunks.length > 0) {
+			const head = this.chunks[0];
+			const available = head.length - this.headOffset;
+			const byteCount = Math.min(available, target.length - copied);
+
+			target.set(head.subarray(this.headOffset, this.headOffset + byteCount), copied);
+			copied += byteCount;
+
+			if (byteCount === available) {
+				this.chunks.shift();
+				this.headOffset = 0;
+			} else {
+				this.headOffset += byteCount;
+			}
+		}
+
+		this.totalBytes -= copied;
+
+		return copied;
+	}
+
+	private discard(byteCount: number): void {
+		this.totalBytes -= byteCount;
+
+		while (byteCount > 0 && this.chunks.length > 0) {
+			const head = this.chunks[0];
+			const available = head.length - this.headOffset;
+
+			if (byteCount < available) {
+				this.headOffset += byteCount;
+
+				return;
+			}
+
+			byteCount -= available;
+			this.headOffset = 0;
+			this.chunks.shift();
+		}
 	}
 
 	private correctByteSize(chunk: Uint8Array, isProcessed?: boolean): Uint8Array {
@@ -188,8 +241,10 @@ export class AudioInput extends Writable {
 	}
 
 	private removeInputSelf(): void {
-		if (this.audioData.length > 0) {
-			this.audioData = new Uint8Array(0);
+		if (this.totalBytes > 0) {
+			this.chunks = [];
+			this.headOffset = 0;
+			this.totalBytes = 0;
 		}
 
 		if (typeof this.selfRemoveFunction === 'function') {
