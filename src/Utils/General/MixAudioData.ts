@@ -4,7 +4,7 @@ import {type InputParams, type ProcessorParams} from '../../Types/ParamTypes';
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from './IsLittleEndian';
 import {getValueRange} from './GetValueRange';
-import {getMethodName} from './GetMethodName';
+import {getReadMethodName, getWriteMethodName} from './GetMethodName';
 import {getZeroSample} from './GetZeroSample';
 
 export function mixAudioData(audioData: ModifiedDataView[], params: InputParams | ProcessorParams): ModifiedDataView {
@@ -18,8 +18,8 @@ export function mixAudioData(audioData: ModifiedDataView[], params: InputParams 
 	const newData = new Uint8Array(audioData[0].byteLength);
 	const mixedData = new ModifiedDataView(newData.buffer);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(params.bitDepth, params.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(params.bitDepth, params.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(params.bitDepth, params.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(params.bitDepth, params.unsigned);
 
 	const inputCount = audioData.length;
 	const {min, max} = valueRange;

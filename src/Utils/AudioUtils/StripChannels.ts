@@ -2,7 +2,7 @@ import {type InputParams} from '../../Types/ParamTypes';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from '../General/IsLittleEndian';
-import {getMethodName} from '../General/GetMethodName';
+import {getReadMethodName, getWriteMethodName} from '../General/GetMethodName';
 
 export function stripChannels(audioData: ModifiedDataView, params: InputParams): ModifiedDataView {
 	const {activeChannels} = params;
@@ -16,8 +16,8 @@ export function stripChannels(audioData: ModifiedDataView, params: InputParams):
 	const isLe = isLittleEndian(params.endianness);
 	const frameCount = audioData.byteLength / (params.channels * bytesPerElement);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(params.bitDepth, params.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(params.bitDepth, params.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(params.bitDepth, params.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(params.bitDepth, params.unsigned);
 
 	const outputData = new Uint8Array(frameCount * activeChannels * bytesPerElement);
 	const outputDataView = new ModifiedDataView(outputData.buffer);

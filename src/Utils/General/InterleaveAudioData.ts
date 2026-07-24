@@ -3,7 +3,7 @@ import {type ProcessorParams} from '../../Types/ParamTypes';
 
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from './IsLittleEndian';
-import {getMethodName} from './GetMethodName';
+import {getReadMethodName, getWriteMethodName} from './GetMethodName';
 
 export function interleaveAudioData(audioData: ModifiedDataView[], params: ProcessorParams): ModifiedDataView {
 	const bytesPerElement = params.bitDepth / 8;
@@ -12,8 +12,8 @@ export function interleaveAudioData(audioData: ModifiedDataView[], params: Proce
 
 	const isLe = isLittleEndian(params.endianness);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(params.bitDepth, params.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(params.bitDepth, params.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(params.bitDepth, params.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(params.bitDepth, params.unsigned);
 
 	const channelCounts = audioData.map(data => data.byteLength / bytesPerChannel);
 	const totalChannels = channelCounts.reduce((sum, n) => sum + n, 0);

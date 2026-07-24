@@ -4,7 +4,7 @@ import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from '../General/IsLittleEndian';
-import {getMethodName} from '../General/GetMethodName';
+import {getReadMethodName, getWriteMethodName} from '../General/GetMethodName';
 
 export function changeChannelsCount(audioData: ModifiedDataView, inputParams: InputParams, processorParams: ProcessorParams): ModifiedDataView {
 	const bytesPerElement = processorParams.bitDepth / 8;
@@ -16,8 +16,8 @@ export function changeChannelsCount(audioData: ModifiedDataView, inputParams: In
 	const allocData = new Uint8Array(dataSize);
 	const allocDataView = new ModifiedDataView(allocData.buffer);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(processorParams.bitDepth, processorParams.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(inputParams.bitDepth, inputParams.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(processorParams.bitDepth, processorParams.unsigned);
 
 	for (let oldPosition = 0, newPosition = 0; oldPosition < audioData.byteLength; oldPosition += bytesPerElement * inputParams.channels) {
 		const sample = audioData[getSampleMethod](oldPosition, isLe);

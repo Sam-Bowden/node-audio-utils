@@ -3,7 +3,7 @@ import {type ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 
 import {isLittleEndian} from '../General/IsLittleEndian';
-import {getMethodName} from '../General/GetMethodName';
+import {getReadMethodName, getWriteMethodName} from '../General/GetMethodName';
 
 export function changeEndianness(audioData: ModifiedDataView, inputParams: InputParams, processorParams: ProcessorParams): void {
 	const bytesPerElement = inputParams.bitDepth / 8;
@@ -11,8 +11,8 @@ export function changeEndianness(audioData: ModifiedDataView, inputParams: Input
 	const isInputLe = isLittleEndian(inputParams.endianness);
 	const isMixerLe = isLittleEndian(processorParams.endianness);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(inputParams.bitDepth, inputParams.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(inputParams.bitDepth, inputParams.unsigned);
 
 	for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
 		const sample = audioData[getSampleMethod](index, isInputLe);

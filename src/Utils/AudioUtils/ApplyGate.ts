@@ -4,7 +4,7 @@ import {type IntType, type BitDepth} from '../../Types/AudioTypes';
 import {type GateState} from '../State/GateState';
 
 import {isLittleEndian} from '../General/IsLittleEndian';
-import {getMethodName} from '../General/GetMethodName';
+import {getReadMethodName, getWriteMethodName} from '../General/GetMethodName';
 import {convertThreshold} from '../General/ConvertThreshold';
 import {type Stats} from '../Stats/Stats';
 
@@ -19,8 +19,8 @@ export function applyGate(
 
 	const {upperThreshold, lowerThreshold, equilibrium} = convertThreshold(params.bitDepth, params.unsigned, params.gateThreshold!);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(params.bitDepth, params.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(params.bitDepth, params.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(params.bitDepth, params.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(params.bitDepth, params.unsigned);
 
 	for (let index = 0; index < audioData.byteLength; index += bytesPerElement) {
 		const sample = audioData[getSampleMethod](index, isLe);
