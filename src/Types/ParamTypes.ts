@@ -46,6 +46,7 @@ export type InputParams = {
 	activeChannels?: number;
 	activeChannelsOffset?: number;
 	upmixOptions?: UpmixOptions;
+	disableMaxBufferLength?: boolean;
 } & BasedParams;
 
 export type StatsParams = {

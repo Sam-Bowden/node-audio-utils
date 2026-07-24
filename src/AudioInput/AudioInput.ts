@@ -83,7 +83,7 @@ export class AudioInput extends Writable {
 					this.chunks.push(processedData);
 					this.totalBytes += processedData.length;
 
-					const {maxBufferLength} = this.processorParams;
+					const maxBufferLength = this.inputParams.disableMaxBufferLength ? undefined : this.processorParams.maxBufferLength;
 
 					if (maxBufferLength !== undefined && this.totalBytes > maxBufferLength) {
 						this.discard(this.totalBytes - maxBufferLength);
