@@ -2,6 +2,7 @@ import {type AudioUtils} from '../Types/AudioUtils';
 import {type InputParams, type ProcessorParams} from '../Types/ParamTypes';
 import {type DownwardCompressorState} from './State/DownwardCompressorState';
 import {type GateState} from './State/GateState';
+import {type SampleRateState} from './State/SampleRateState';
 import {UpmixState} from './State/UpmixState';
 
 import {ModifiedDataView} from '../ModifiedDataView/ModifiedDataView';
@@ -35,6 +36,7 @@ export class InputUtils implements AudioUtils {
 
 	private readonly gateState: GateState;
 	private readonly downwardCompressorState: DownwardCompressorState;
+	private readonly sampleRateState: SampleRateState;
 	private upmixState?: UpmixState;
 
 	constructor(inputParams: InputParams, processorParams: ProcessorParams) {
@@ -48,6 +50,8 @@ export class InputUtils implements AudioUtils {
 		this.gateState = {holdSamplesRemaining: inputParams.gateHoldSamples, attenuation: 1};
 
 		this.downwardCompressorState = {ratio: 1};
+
+		this.sampleRateState = {fraction: 0};
 
 		this.processingStats = new ProcessingStats(processorParams.bitDepth, processorParams.channels);
 	}
@@ -77,7 +81,7 @@ export class InputUtils implements AudioUtils {
 
 	public checkSampleRate(): this {
 		if (this.changedParams.sampleRate !== this.audioProcessorParams.sampleRate) {
-			this.audioData = changeSampleRate(this.audioData, this.changedParams, this.audioProcessorParams);
+			this.audioData = changeSampleRate(this.audioData, this.changedParams, this.audioProcessorParams, this.sampleRateState);
 		}
 
 		return this;
@@ -123,6 +127,9 @@ export class InputUtils implements AudioUtils {
 
 	public clear(): void {
 		this.upmixState?.clear();
+
+		this.sampleRateState.fraction = 0;
+		this.sampleRateState.lastFrame = undefined;
 	}
 
 	public checkActiveChannelsCount(): this {

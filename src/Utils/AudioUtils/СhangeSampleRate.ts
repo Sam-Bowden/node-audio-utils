@@ -1,43 +1,80 @@
 import {type InputParams, type ProcessorParams} from '../../Types/ParamTypes';
 import {type IntType, type BitDepth} from '../../Types/AudioTypes';
+import {type SampleRateState} from '../State/SampleRateState';
 
 import {ModifiedDataView} from '../../ModifiedDataView/ModifiedDataView';
 import {isLittleEndian} from '../General/IsLittleEndian';
-import {getMethodName} from '../General/GetMethodName';
+import {getReadMethodName, getWriteMethodName} from '../General/GetMethodName';
 
-export function changeSampleRate(audioData: ModifiedDataView, inputParams: InputParams, processorParams: ProcessorParams): ModifiedDataView {
+export function changeSampleRate(
+	audioData: ModifiedDataView,
+	inputParams: InputParams,
+	processorParams: ProcessorParams,
+	state: SampleRateState,
+): ModifiedDataView {
 	const bytesPerElement = inputParams.bitDepth / 8;
+	const {channels} = inputParams;
+	const bytesPerFrame = bytesPerElement * channels;
 
 	const isLe = isLittleEndian(inputParams.endianness);
 
 	const scaleFactor = inputParams.sampleRate / processorParams.sampleRate;
 
-	const totalInputSamples = Math.floor(audioData.byteLength / bytesPerElement);
-	const totalOutputSamples = Math.ceil(totalInputSamples / scaleFactor);
+	const totalInputFrames = Math.floor(audioData.byteLength / bytesPerFrame);
 
-	const dataSize = totalOutputSamples * bytesPerElement;
+	if (state.lastFrame !== undefined && state.lastFrame.length !== channels) {
+		state.lastFrame = undefined;
+		state.fraction = 0;
+	}
 
-	const allocData = new Uint8Array(dataSize);
+	const {lastFrame} = state;
+
+	const carryOffset = lastFrame === undefined ? 0 : 1;
+	const lastFrameIndex = (totalInputFrames - 1) + carryOffset;
+
+	const startPosition = state.fraction;
+	const totalOutputFrames = Math.max(0, Math.ceil((lastFrameIndex - startPosition) / scaleFactor));
+
+	const allocData = new Uint8Array(totalOutputFrames * bytesPerFrame);
 	const allocDataView = new ModifiedDataView(allocData.buffer);
 
-	const getSampleMethod: `get${IntType}${BitDepth}` = `get${getMethodName(inputParams.bitDepth, inputParams.unsigned)}`;
-	const setSampleMethod: `set${IntType}${BitDepth}` = `set${getMethodName(processorParams.bitDepth, processorParams.unsigned)}`;
+	const getSampleMethod: `get${IntType}${BitDepth}` = getReadMethodName(inputParams.bitDepth, inputParams.unsigned);
+	const setSampleMethod: `set${IntType}${BitDepth}` = getWriteMethodName(processorParams.bitDepth, processorParams.unsigned);
 
-	for (let index = 0; index < totalOutputSamples; index++) {
-		const interpolatePosition = index * scaleFactor;
+	for (let index = 0; index < totalOutputFrames; index++) {
+		const interpolatePosition = startPosition + (index * scaleFactor);
 
 		const previousPosition = Math.floor(interpolatePosition);
-		const nextPosition = previousPosition + 1;
+		const nextPosition = Math.min(previousPosition + 1, lastFrameIndex);
+		const weight = interpolatePosition - previousPosition;
 
-		const previousSample = audioData[getSampleMethod](previousPosition * bytesPerElement, isLe);
+		const previousByteOffset = (previousPosition - carryOffset) * bytesPerFrame;
+		const nextByteOffset = (nextPosition - carryOffset) * bytesPerFrame;
 
-		const nextSample = nextPosition < totalInputSamples
-			? audioData[getSampleMethod](nextPosition * bytesPerElement, isLe)
-			: previousSample;
+		for (let channel = 0; channel < channels; channel++) {
+			const channelByteOffset = channel * bytesPerElement;
 
-		const interpolatedValue = ((interpolatePosition - previousPosition) * (nextSample - previousSample)) + previousSample;
+			const previousSample = lastFrame !== undefined && previousPosition === 0
+				? lastFrame[channel]
+				: audioData[getSampleMethod](previousByteOffset + channelByteOffset, isLe);
 
-		allocDataView[setSampleMethod](index * bytesPerElement, interpolatedValue, isLe);
+			const nextSample = audioData[getSampleMethod](nextByteOffset + channelByteOffset, isLe);
+
+			const interpolatedValue = (weight * (nextSample - previousSample)) + previousSample;
+
+			allocDataView[setSampleMethod]((index * bytesPerFrame) + channelByteOffset, interpolatedValue, isLe);
+		}
+	}
+
+	if (totalInputFrames > 0) {
+		const finalFrame: number[] = [];
+
+		for (let channel = 0; channel < channels; channel++) {
+			finalFrame.push(audioData[getSampleMethod](((totalInputFrames - 1) * bytesPerFrame) + (channel * bytesPerElement), isLe));
+		}
+
+		state.lastFrame = finalFrame;
+		state.fraction = Math.max(0, (startPosition + (totalOutputFrames * scaleFactor)) - lastFrameIndex);
 	}
 
 	inputParams.sampleRate = processorParams.sampleRate;
